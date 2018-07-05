@@ -2,6 +2,11 @@
 
 use API::Discord;
 
-my $c = await API::Discord.new.connect;
+sub MAIN($token) {
+    my $c = API::Discord.new(:$token).connect;
 
-say $c.gist;
+    say $c.gist;
+
+    my $conn = await $c;
+    say $conn.gist;
+}
