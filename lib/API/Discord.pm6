@@ -27,9 +27,9 @@ method connect() returns Promise {
 
 class Connection is export {
     has Cro::WebSocket::Client::Connection $.cro-conn is required;
-    has $.token is required;
-    has $!sequence;
-    has $!session-id;
+    has String $.token is required;
+    has Int $!sequence;
+    has String $!session-id;
     has Supply $.messages;
     has Supply $!heartbeat;
     has Promise $!hb-ack;
