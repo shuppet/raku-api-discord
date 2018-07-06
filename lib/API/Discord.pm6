@@ -1,36 +1,31 @@
+unit class API::Discord is export;
+
 #use Timer::Breakable;
+use API::Discord::Types;
 use Cro::WebSocket::Client;
 use Cro::WebSocket::Client::Connection;
 
-enum API::Discord::OPCODE (
-    despatch => 0,
-    auth => 2,
-    heartbeat => 1,
-);
+class Connection {...}
 
-class API::Discord::Connection {...}
+has Cro::WebSocket::Client $!cli;
 
-class API::Discord is export {
-    has Cro::WebSocket::Client $!cli;
+has $.version = 6;
+has $.token is required;
 
-    has $.version = 6;
-    has $.token is required;
+method connect() returns Promise {
+    $!cli = Cro::WebSocket::Client.new: :json;
 
-    method connect() returns Promise {
-        $!cli = Cro::WebSocket::Client.new: :json;
+    my $c = $!cli.connect("wss://gateway.discord.gg/?v={$.version}&encoding=json");
 
-        my $c = $!cli.connect("wss://gateway.discord.gg/?v={$.version}&encoding=json");
-
-        return $c.then: {
-            API::Discord::Connection.new(
-                token => $.token,
-                cro-conn => $^a.result
-            )
-        };
-    }
+    return $c.then: {
+        Connection.new(
+            token => $.token,
+            cro-conn => $^a.result
+        )
+    };
 }
 
-class API::Discord::Connection is export {
+class Connection is export {
     has Cro::WebSocket::Client::Connection $.cro-conn is required;
     has $.token is required;
     has $!sequence;
@@ -64,17 +59,19 @@ class API::Discord::Connection is export {
         my $payload = $json<d>;
         say $json;
         given ($json<op>) {
-            when 0 {
+            when OPCODE::despatch {
+                # TODO: check event!
                 $!session-id = $payload<session_id>
             }
-            when 10 {
+            when OPCODE::hello {
                 self.auth;
                 self.setup-heartbeat($payload<heartbeat_interval>/1000);
             }
-            when 11 {
+            when OPCODE::heartbeat-ack {
                 self.ack-heartbeat-ack;
             }
             default {
+                note "Unhandled opcode $_ ({OPCODE($_)})";
                 $.messages.emit($json);
             }
         }
@@ -86,7 +83,7 @@ class API::Discord::Connection is export {
             note "♥ $interval";
             $!cro-conn.send({
                 d => $!sequence,
-                op => API::Discord::OPCODE::heartbeat,
+                op => OPCODE::heartbeat,
             });
 
             # Set up a timeout that will be kept if the ack promise isn't
