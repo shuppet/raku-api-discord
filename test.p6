@@ -9,4 +9,11 @@ sub MAIN($token) {
 
     my $conn = await $c;
     say $conn.gist;
+
+    react {
+        whenever $conn.messages -> $m {
+            say ":o" ~ $m;
+            LAST { say ":(" }
+        }
+    }
 }
