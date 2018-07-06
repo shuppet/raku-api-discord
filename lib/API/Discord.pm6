@@ -1,5 +1,12 @@
+#use Timer::Breakable;
 use Cro::WebSocket::Client;
 use Cro::WebSocket::Client::Connection;
+
+enum API::Discord::OPCODE (
+    despatch => 0,
+    auth => 2,
+    heartbeat => 1,
+);
 
 class API::Discord::Connection {...}
 
@@ -27,6 +34,7 @@ class API::Discord::Connection is export {
     has Cro::WebSocket::Client::Connection $.cro-conn is required;
     has $.token is required;
     has $!sequence;
+    has $!session-id;
     has Supply $.messages;
     has Supply $!heartbeat;
     has Promise $!hb-ack;
@@ -52,11 +60,16 @@ class API::Discord::Connection is export {
         if $json<s> {
             $!sequence = $json<s>;
         }
+
+        my $payload = $json<d>;
         say $json;
         given ($json<op>) {
+            when 0 {
+                $!session-id = $payload<session_id>
+            }
             when 10 {
                 self.auth;
-                self.setup-heartbeat($json<d><heartbeat_interval>/1000);
+                self.setup-heartbeat($payload<heartbeat_interval>/1000);
             }
             when 11 {
                 self.ack-heartbeat-ack;
@@ -73,7 +86,7 @@ class API::Discord::Connection is export {
             note "♥ $interval";
             $!cro-conn.send({
                 d => $!sequence,
-                op => 1,
+                op => API::Discord::OPCODE::heartbeat,
             });
 
             # Set up a timeout that will be kept if the ack promise isn't
@@ -94,6 +107,9 @@ class API::Discord::Connection is export {
     }
 
     method auth () {
+        if ($!session-id and $!sequence) {
+        }
+
         $!cro-conn.send({
             op => 2,
             d => {
