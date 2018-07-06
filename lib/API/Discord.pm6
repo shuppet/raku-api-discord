@@ -108,7 +108,7 @@ class Connection is export {
         }
 
         $!cro-conn.send({
-            op => 2,
+            op => OPCODE::identify,
             d => {
                 token => $!token,
                 properties => {

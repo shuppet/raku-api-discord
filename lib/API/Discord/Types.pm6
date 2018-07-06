@@ -2,7 +2,7 @@ unit module API::Discord::Types;
 
 
 enum OPCODE is export (
-    <despatch heartbeat auth status-update
+    <despatch heartbeat identify status-update
     voice-state-update voice-ping
     resume reconnect
     request-members
