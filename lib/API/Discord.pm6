@@ -27,9 +27,9 @@ method connect() returns Promise {
 
 class Connection is export {
     has Cro::WebSocket::Client::Connection $.cro-conn is required;
-    has String $.token is required;
+    has Str $.token is required;
     has Int $!sequence;
-    has String $!session-id;
+    has Str $!session-id;
     has Supply $.messages;
     has Supply $!heartbeat;
     has Promise $!hb-ack;
@@ -65,7 +65,7 @@ class Connection is export {
             }
             when OPCODE::invalid-session {
                 note "Session invalid. Refreshing.";
-                $!session-id = String;
+                $!session-id = Str;
                 $!sequence = Int;
                 # Docs say to wait a random amount of time between 1 and 5
                 # seconds, then re-auth
