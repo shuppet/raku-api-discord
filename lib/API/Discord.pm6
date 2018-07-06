@@ -22,7 +22,9 @@ method connect($session-id?, $sequence?) returns Promise {
     return $c.then: {
         my $conn = Connection.new(
             token => $.token,
-            cro-conn => $^a.result
+            cro-conn => $^a.result,
+          |(:$session-id if $session-id),
+          |(:$sequence if $sequence),
         );
 
         # Attempt to reconnect when disconnected.
