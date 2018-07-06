@@ -12,24 +12,37 @@ has Cro::WebSocket::Client $!cli;
 has $.version = 6;
 has $.token is required;
 
-method connect() returns Promise {
+submethod TWEAK() {
     $!cli = Cro::WebSocket::Client.new: :json;
+}
 
+method connect($session-id?, $sequence?) returns Promise {
     my $c = $!cli.connect("wss://gateway.discord.gg/?v={$.version}&encoding=json");
 
     return $c.then: {
-        Connection.new(
+        my $conn = Connection.new(
             token => $.token,
             cro-conn => $^a.result
-        )
+        );
+
+        # Attempt to reconnect when disconnected.
+        # I don't think I can reuse this connection if that happens.
+        $^a.result.closer.then({
+            self.connect($conn.session-id, $conn.sequence);
+        });
+
+        $conn;
     };
+}
+
+method _connection(:$token, :$cro-conn) {
 }
 
 class Connection is export {
     has Cro::WebSocket::Client::Connection $.cro-conn is required;
     has Str $.token is required;
-    has Int $!sequence;
-    has Str $!session-id;
+    has Int $.sequence;
+    has Str $.session-id;
     has Supply $.messages;
     has Supply $!heartbeat;
     has Promise $!hb-ack;
@@ -88,7 +101,7 @@ class Connection is export {
     method setup-heartbeat($interval) {
         $!heartbeat = Supply.interval($interval);
         $!heartbeat.tap: {
-            note "♥ $interval";
+            note "♥";
             $!cro-conn.send({
                 d => $!sequence,
                 op => OPCODE::heartbeat,
