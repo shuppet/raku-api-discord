@@ -63,6 +63,14 @@ class Connection is export {
                 # TODO: check event!
                 $!session-id = $payload<session_id>
             }
+            when OPCODE::invalid-session {
+                note "Session invalid. Refreshing.";
+                $!session-id = String;
+                $!sequence = Int;
+                # Docs say to wait a random amount of time between 1 and 5
+                # seconds, then re-auth
+                Promise.in(4.rand+1).then({ self.auth });
+            }
             when OPCODE::hello {
                 self.auth;
                 self.setup-heartbeat($payload<heartbeat_interval>/1000);
