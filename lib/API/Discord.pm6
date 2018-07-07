@@ -40,7 +40,7 @@ method connect($session-id?, $sequence?) returns Promise {
 method _connection(:$token, :$cro-conn) {
 }
 
-class Connection is export {
+class Connection {
     has Cro::WebSocket::Client::Connection $.cro-conn is required;
     has Str $.token is required;
     has Int $.sequence;
