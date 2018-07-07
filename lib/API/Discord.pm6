@@ -90,6 +90,9 @@ class Connection {
                 self.auth;
                 self.setup-heartbeat($payload<heartbeat_interval>/1000);
             }
+            when OPCODE::reconnect {
+                self.auth;
+            }
             when OPCODE::heartbeat-ack {
                 self.ack-heartbeat-ack;
             }
