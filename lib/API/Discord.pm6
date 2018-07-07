@@ -9,18 +9,25 @@ class Connection {...}
 
 has Cro::WebSocket::Client $!cli;
 
-has $.version = 6;
-has $.token is required;
+has Connection $!conn;
+# Although a number it goes in a URL so it's a string
+has Str $.version = '6';
+has Str $.token is required;
 
-submethod TWEAK() {
+submethod TWEAK {
     $!cli = Cro::WebSocket::Client.new: :json;
+
+}
+
+submethod DESTROY {
+    $!conn.close;
 }
 
 method connect($session-id?, $sequence?) returns Promise {
     my $c = $!cli.connect("wss://gateway.discord.gg/?v={$.version}&encoding=json");
 
     return $c.then: {
-        my $conn = Connection.new(
+        $!conn = Connection.new(
             token => $.token,
             cro-conn => $^a.result,
           |(:$session-id if $session-id),
@@ -30,14 +37,13 @@ method connect($session-id?, $sequence?) returns Promise {
         # Attempt to reconnect when disconnected.
         # I don't think I can reuse this connection if that happens.
         $^a.result.closer.then({
-            self.connect($conn.session-id, $conn.sequence);
+            self.connect($!conn.session-id, $!conn.sequence);
         });
-
-        $conn;
     };
 }
 
-method _connection(:$token, :$cro-conn) {
+method messages returns Supply {
+    $!conn.messages;
 }
 
 class Connection {
@@ -72,11 +78,17 @@ class Connection {
         }
 
         my $payload = $json<d>;
-        say $json;
+        say $json<op t>;
         given ($json<op>) {
             when OPCODE::despatch {
                 # TODO: check event!
-                $!session-id = $payload<session_id>
+                $!session-id = $payload<session_id>;
+
+                # These are probably useful to the bot
+                # We will figure out any that might not be, and handle them
+                # here in future
+                say "emit {$json<t>}";
+                $.messages.emit($json);
             }
             when OPCODE::invalid-session {
                 note "Session invalid. Refreshing.";

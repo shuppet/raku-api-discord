@@ -3,17 +3,13 @@
 use API::Discord;
 
 sub MAIN($token) {
-    my $c = API::Discord.new(:$token).connect;
+    my $c = API::Discord.new(:$token);
 
-    say $c.gist;
-
-    my $conn = await $c;
-    say $conn.gist;
+    await $c.connect;
 
     react {
-        whenever $conn.messages -> $m {
-            say ":o" ~ $m;
-            LAST { say ":(" }
+        whenever $c.messages -> $m {
+            say "something";
         }
     }
 }
