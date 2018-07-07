@@ -49,7 +49,7 @@ class Connection {
     has Supply $!heartbeat;
     has Promise $!hb-ack;
 
-    submethod TWEAK() {
+    submethod TWEAK {
         my $messages = $!cro-conn.messages;
         $messages.tap:
             { self.handle-message($^a) },
@@ -124,12 +124,12 @@ class Connection {
         };
     }
 
-    method ack-heartbeat-ack() {
+    method ack-heartbeat-ack {
         note "Still with us ♥";
         $!hb-ack.keep;
     }
 
-    method auth () {
+    method auth {
         if ($!session-id and $!sequence) {
         }
 
@@ -146,7 +146,7 @@ class Connection {
         });
     }
 
-    method close() {
+    method close {
         $.messages.done;
         $!cro-conn.close;
     }
