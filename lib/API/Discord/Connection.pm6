@@ -1,5 +1,8 @@
 unit class API::Discord::Connection;
 
+use API::Discord::Types;
+use Cro::WebSocket::Client::Connection;
+
 has Cro::WebSocket::Client::Connection $.cro-conn is required;
 has Str $.token is required;
 has Int $.sequence;
