@@ -9,7 +9,7 @@ sub MAIN($token) {
 
     react {
         whenever $c.messages -> $m {
-            say "something";
+            say $m;
         }
     }
 }

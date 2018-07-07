@@ -51,7 +51,7 @@ class Connection {
     has Str $.token is required;
     has Int $.sequence;
     has Str $.session-id;
-    has Supply $.messages;
+    has Supplier $!messages;
     has Supply $!heartbeat;
     has Promise $!hb-ack;
 
@@ -62,11 +62,13 @@ class Connection {
             done => { self.auth() }
         ;
 
-        my $supplier = Supplier::Preserving.new;
-        $!messages = $supplier.Supply;
+        $!messages = Supplier::Preserving.new;
     }
 
     method handle-message($m) {
+        # FIXME - this creates a Promise that may be broken, and we do nothing
+        # about that. It was suggested I use the supply pattern instead, but I'm
+        # not sure how right now
         $m.body.then({ self.handle-opcode($^a.result) }) if $m.is-text;
         # else what?
     }
@@ -77,18 +79,23 @@ class Connection {
             $!sequence = $json<s>;
         }
 
+        CATCH {.say}
+
         my $payload = $json<d>;
-        say $json<op t>;
+        my $event = $json<t>; # mnemonic: rtfm
+
         given ($json<op>) {
             when OPCODE::despatch {
-                # TODO: check event!
-                $!session-id = $payload<session_id>;
-
-                # These are probably useful to the bot
-                # We will figure out any that might not be, and handle them
-                # here in future
-                say "emit {$json<t>}";
-                $.messages.emit($json);
+                if $event eq 'READY' {
+                    $!session-id = $payload<session_id>;
+                }
+                else {
+                    # These are probably useful to the bot
+                    # We will figure out any that might not be, and handle them
+                    # here in future
+                    say "emit {$json<t>}";
+                    $!messages.emit($json);
+                }
             }
             when OPCODE::invalid-session {
                 note "Session invalid. Refreshing.";
@@ -110,7 +117,7 @@ class Connection {
             }
             default {
                 note "Unhandled opcode $_ ({OPCODE($_)})";
-                $.messages.emit($json);
+                $!messages.emit($json);
             }
         }
     }
@@ -156,6 +163,10 @@ class Connection {
                 }
             }
         });
+    }
+
+    method messages returns Supply {
+        $!messages.Supply;
     }
 
     method close {
