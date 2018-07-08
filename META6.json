@@ -1,0 +1,19 @@
+{
+	"authors" : [
+		"Alastair 'altreus' Douglas <altreus@altre.us>",
+		"Kane 'kawaii' Valentine <kane@cute.im>"
+	],
+	"depends" : [
+		"Cro::Websocket::Client"
+	],
+	"description" : "Perl6 module for interacting with the Discord API.",
+	"licence" : "BSD 3-Clause License",
+	"name" : "API::Discord",
+	"perl" : "6.*",
+	"provides" : { 
+		"API::Discord" : "lib/API/Discord.pm6" 
+	},
+	"repo-type" : "git",
+	"source-url" : "git@github.com:kawaiiforums/p6-api-discord.git",
+	"version" : "0.0.1"
+}
