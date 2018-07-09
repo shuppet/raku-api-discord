@@ -126,6 +126,8 @@ method messages returns Supply {
 }
 
 method close {
-    $.messages.done;
-    $!cro-conn.close;
+    say "Closing connection";
+    CATCH { .say }
+    $!messages.done;
+    await $!cro-conn.close(code => 4001);
 }
