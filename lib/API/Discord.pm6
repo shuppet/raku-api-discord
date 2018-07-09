@@ -11,6 +11,7 @@ has Cro::WebSocket::Client $!cli;
 has Connection $!conn;
 # Although a number it goes in a URL so it's a string
 has Str $.version = '6';
+has Str $.host = 'gateway.discord.gg';
 has Str $.token is required;
 
 submethod TWEAK {
@@ -23,7 +24,7 @@ submethod DESTROY {
 }
 
 method connect($session-id?, $sequence?) returns Promise {
-    my $c = $!cli.connect("wss://gateway.discord.gg/?v={$.version}&encoding=json");
+    my $c = $!cli.connect("wss://{$.host}/?v={$.version}&encoding=json");
 
     return $c.then: {
         $!conn = Connection.new(
