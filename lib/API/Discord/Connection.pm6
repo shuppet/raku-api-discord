@@ -90,7 +90,7 @@ method setup-heartbeat($interval) {
         # Set up a timeout that will be kept if the ack promise isn't
         $!hb-ack = Promise.new;
         Promise.anyof(
-            Promise.in($interval), $!hb-ack
+            Promise.in($interval - 1), $!hb-ack
         ).then({
             return if $!hb-ack;
             note "Heartbeat wasn't acknowledged! ☹";
