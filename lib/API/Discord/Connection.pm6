@@ -10,6 +10,7 @@ has Str $.session-id;
 has Supplier $!messages;
 has Supply $!heartbeat;
 has Promise $!hb-ack;
+has Promise $.closer;
 
 submethod TWEAK {
     my $messages = $!cro-conn.messages;
@@ -19,6 +20,12 @@ submethod TWEAK {
     ;
 
     $!messages = Supplier::Preserving.new;
+
+    $!closer = $!cro-conn.closer.then(-> $closer {
+        my $why = $closer.result;
+        $!messages.done;
+        $why;
+    });
 }
 
 method handle-message($m) {
@@ -49,7 +56,6 @@ method handle-opcode($json) {
                 # These are probably useful to the bot
                 # We will figure out any that might not be, and handle them
                 # here in future
-                say "emit {$json<t>}";
                 $!messages.emit($json);
             }
         }
@@ -62,6 +68,8 @@ method handle-opcode($json) {
             Promise.in(4.rand+1).then({ self.auth });
         }
         when OPCODE::hello {
+            return if $!heartbeat;
+
             self.auth;
             self.setup-heartbeat($payload<heartbeat_interval>/1000);
         }
@@ -129,5 +137,11 @@ method close {
     say "Closing connection";
     CATCH { .say }
     $!messages.done;
+    #$!heartbeat.done;
     await $!cro-conn.close(code => 4001);
 }
+
+method send(Hash $json) {
+    $!cro-conn.send($json);
+}
+

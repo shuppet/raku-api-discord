@@ -5,13 +5,31 @@ use API::Discord;
 sub MAIN($token) {
     my $c = API::Discord.new(:$token);
 
-    await $c.connect;
+    my Promise $closer = await $c.connect;
+
+    my @channels;
 
     react {
         CATCH {.say}
         whenever $c.messages -> $m {
-            say $m;
+            if $m<d><channels> {
+                @channels := $m<d><channels>;
+            }
+            else {
+                say $m;
+                #say @channels;
+
+                for @channels -> $chan {
+                    if $chan<name> ~~ /spam/ {
+                        $chan<id>.say;
+                        $c.send-message(:message("meow"), :to($chan<id>));
+                    }
+                }
+            }
             LAST { say "ok bye" }
         }
     }
+
+    my $reason = await $closer;
+    say await $reason.body;
 }
