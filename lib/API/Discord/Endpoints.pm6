@@ -10,8 +10,8 @@ class X::API::Discord::Endpoint::NotEnoughArguments is Exception {
 
 our %ENDPOINT =
     message => %(
-        post => '/channel/{channel-id}/message',
-        get  => '/channel/{channel-id}/message/{message-id}',
+        post => '/channels/{channel-id}/messages',
+        get  => '/channels/{channel-id}/messages/{message-id}',
     )
 ;
 

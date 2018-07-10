@@ -22,7 +22,8 @@ sub MAIN($token) {
                 for @channels -> $chan {
                     if $chan<name> ~~ /spam/ {
                         $chan<id>.say;
-                        $c.send-message(:message("meow"), :to($chan<id>));
+                        my $r = await $c.send-message(:message("meow"), :to($chan<id>));
+                        say await $r.body;
                     }
                 }
             }

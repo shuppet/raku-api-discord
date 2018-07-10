@@ -6,8 +6,6 @@ use API::Discord::Connection;
 use Cro::WebSocket::Client;
 use Cro::WebSocket::Client::Connection;
 
-has Cro::WebSocket::Client $!cli;
-
 has Connection $!conn;
 # Although a number it goes in a URL so it's a string
 has Str $.version = '6';
@@ -17,44 +15,26 @@ has Str $.token is required;
 # Docs say, increment number each time, per process
 has Int $!snowflake = 0;
 
-submethod TWEAK {
-    $!cli = Cro::WebSocket::Client.new: :json;
-}
-
 submethod DESTROY {
     $!conn.close;
 }
 
 method connect($session-id?, $sequence?) returns Promise {
-    my $c = $!cli.connect("wss://{$.host}/?v={$.version}&encoding=json");
+    $!conn = Connection.new(
+        url => "wss://{$.host}/?v={$.version}&encoding=json",
+        token => $.token,
+      |(:$session-id if $session-id),
+      |(:$sequence if $sequence),
+    );
 
-    return $c.then: -> $promise {
-        my $cro-conn = $promise.result;
-        $!conn = Connection.new(
-            token => $.token,
-            :$cro-conn,
-          |(:$session-id if $session-id),
-          |(:$sequence if $sequence),
-        );
-
-        $!conn.closer;
-    };
+    return $!conn.opener.then({ $!conn.closer });
 }
 
 method messages returns Supply {
     $!conn.messages;
 }
 
-multi method send-message(Hash $json) {
-    $!conn.send({
-        op => OPCODE::despatch,
-        t => "MESSAGE_CREATE",
-        d => $json,
-    });
-}
-
 multi method send-message(Str :$message, Str :$to) {
-    say "Send $message to $to";
     my $json = {
         tts => False,
         type => 0,
@@ -64,8 +44,7 @@ multi method send-message(Str :$message, Str :$to) {
         embed => {},
     };
 
-    say "Sending " ~ $json;
-    self.send-message($json);
+    $!conn.send($json);
 }
 
 method generate-snowflake {

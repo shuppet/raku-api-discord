@@ -1,19 +1,42 @@
 unit class API::Discord::Connection;
 
 use API::Discord::Types;
+use API::Discord::Connection::REST;
+# Probably make API::Discord::Connection::WS later for hb etc
 use Cro::WebSocket::Client::Connection;
+use Cro::HTTP::Client;
 
-has Cro::WebSocket::Client::Connection $.cro-conn is required;
+has Str $.url is required;
 has Str $.token is required;
 has Int $.sequence;
 has Str $.session-id;
+
+has Cro::WebSocket::Client::Connection $.websocket;
+has API::Discord::Connection::REST $.rest;
+has Promise $.opener;
 has Supplier $!messages;
 has Supply $!heartbeat;
 has Promise $!hb-ack;
 has Promise $.closer;
 
 submethod TWEAK {
-    my $messages = $!cro-conn.messages;
+    my $cli = Cro::WebSocket::Client.new: :json;
+    $!opener = $cli.connect($!url)
+        .then( -> $connection {
+            self._on_ws_connect($connection.result);
+        });
+
+    $!rest = API::Discord::Connection::REST.new:
+        content-type => 'application/json',
+        headers => [
+            Authorization => 'Bot ' ~ $!token,
+            User-agent => "DiscordBot (https://github.io/kawaiiforms/p6-api-discord, 0.0.1)",
+        ]
+    ;
+}
+
+method _on_ws_connect($!websocket) {
+    my $messages = $!websocket.messages;
     $messages.tap:
         { self.handle-message($^a) },
         done => { self.auth() }
@@ -21,7 +44,7 @@ submethod TWEAK {
 
     $!messages = Supplier::Preserving.new;
 
-    $!closer = $!cro-conn.closer.then(-> $closer {
+    $!closer = $!websocket.closer.then(-> $closer {
         my $why = $closer.result;
         $!messages.done;
         $why;
@@ -90,7 +113,7 @@ method setup-heartbeat($interval) {
     $!heartbeat = Supply.interval($interval);
     $!heartbeat.tap: {
         note "♥";
-        $!cro-conn.send({
+        $!websocket.send({
             d => $!sequence,
             op => OPCODE::heartbeat,
         });
@@ -116,7 +139,7 @@ method auth {
     if ($!session-id and $!sequence) {
     }
 
-    $!cro-conn.send({
+    $!websocket.send({
         op => OPCODE::identify,
         d => {
             token => $!token,
@@ -138,10 +161,10 @@ method close {
     CATCH { .say }
     $!messages.done;
     #$!heartbeat.done;
-    await $!cro-conn.close(code => 4001);
+    await $!websocket.close(code => 4001);
 }
 
 method send(Hash $json) {
-    $!cro-conn.send($json);
+    $!rest.send($json);
 }
 
