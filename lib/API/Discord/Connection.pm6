@@ -28,6 +28,7 @@ submethod TWEAK {
 
     $!rest = API::Discord::Connection::REST.new:
         content-type => 'application/json',
+        http => '1.1',
         headers => [
             Authorization => 'Bot ' ~ $!token,
             User-agent => "DiscordBot (https://github.io/kawaiiforms/p6-api-discord, 0.0.1)",
