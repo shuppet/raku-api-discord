@@ -12,14 +12,13 @@ our %ENDPOINT =
     message => %(
         post => '/channels/{channel-id}/messages',
         get  => '/channels/{channel-id}/messages/{message-id}',
-    )
+    ),
+
 ;
 
 sub endpoint-for ($resource, $method, *%args) is export {
     my $e = %ENDPOINT{$resource}{$method};
-    my @required-fields = $e ~~ / '{' <( .+? )> '}' /;
-
-    say %args, @required-fields, %args{@required-fields};
+    my @required-fields = $e ~~ m:g/ '{' <( .+? )> '}' /;
 
     unless %args{@required-fields}:exists.all {
         X::API::Discord::Endpoint::NotEnoughArguments.new(
