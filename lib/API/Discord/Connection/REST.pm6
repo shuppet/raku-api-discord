@@ -5,7 +5,14 @@ unit class API::Discord::Connection::REST is Cro::HTTP::Client;
 has $.version = '6';
 has $.base-url = "https://discordapp.com/api";
 
-method send(Hash $json) {
+# multi method send (API::Discord::HTTPMessage $m) {
+#    $m.create(self)
+# }
+multi method send(API::Discord::Message $m) {
+    $m.create(self);
+}
+
+multi method send(Str $endpoint, Hash $json) {
     my $c = $json<channel_id>:delete;
     my $e = endpoint-for('message', 'post', :channel-id($c));
 

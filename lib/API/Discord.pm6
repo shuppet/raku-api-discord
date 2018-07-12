@@ -15,6 +15,12 @@ has Str $.token is required;
 # Docs say, increment number each time, per process
 has Int $!snowflake = 0;
 
+#has Supplier $.messages;
+
+# This should actually be on channels
+has API::Discord::Message @.messages;
+has API::Discord::Channel %.channels;
+
 submethod DESTROY {
     $!conn.close;
 }
@@ -34,7 +40,14 @@ method messages returns Supply {
     $!conn.messages;
 }
 
+multi method send-message(API::Discord::Message $m) {
+    $!conn.send($m);
+}
+
 multi method send-message(Str :$message, Str :$to) {
+    # my $c = %.channels{$to} or die;
+    # my $m = API::Discord::Message.new(... content => $message, channel => $c)
+    # self.send-message($m)
     my $json = {
         tts => False,
         type => 0,

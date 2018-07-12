@@ -32,6 +32,10 @@ submethod TWEAK {
         headers => [
             Authorization => 'Bot ' ~ $!token,
             User-agent => "DiscordBot (https://github.io/kawaiiforms/p6-api-discord, 0.0.1)",
+            Accept => 'application/json, */*',
+            Accept-encoding => 'gzip, deflate',
+            Connection => 'keep-alive',
+
         ]
     ;
 }
@@ -165,7 +169,11 @@ method close {
     await $!websocket.close(code => 4001);
 }
 
-method send(Hash $json) {
+multi method send(API::Discord::Message $m) {
+    $!rest.send($m).then(-> $res { $.messages.emit($m) });;
+}
+multi method send(Hash $json) {
+    # TODO : handle error here?
     $!rest.send($json);
 }
 
