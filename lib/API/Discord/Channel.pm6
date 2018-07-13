@@ -8,3 +8,5 @@ has %.ENDPOINTS is readonly =
 
     get-messages => '/channels/{channel-id}/messages',
 ;
+
+has API::Discord::Message @.messages;
