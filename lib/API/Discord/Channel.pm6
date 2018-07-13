@@ -10,3 +10,7 @@ has %.ENDPOINTS is readonly =
 ;
 
 has API::Discord::Message @.messages;
+
+method fetch-messages(Int $how-many) {
+    ...
+}

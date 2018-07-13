@@ -21,8 +21,6 @@ has %.ENDPOINTS is readonly =
     read => '/channels/{channel-id}/messages/{message-id}',
     update => '/channels/{channel-id}/messages/{message-id}',
     delete => '/channels/{channel-id}/messages/{message-id}',
-
-    get-reactions =>  '/channels/{channel-id}/messages/{message-id}/reactions'
 ;
 
 has $.id;
@@ -30,7 +28,7 @@ has $.channel-id;
 has API::Discord::Channel $.channel;# will lazy { API::Discord::Channel.new($.channel-id) };
 has API::Discord::User $.author;
 
-has API::Discord::Reaction @.reactions;
+#has API::Discord::Reaction %.reactions;
 has Type $.type;
 
 ...; # Rest of properties
