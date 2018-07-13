@@ -15,11 +15,19 @@ has Str $.token is required;
 # Docs say, increment number each time, per process
 has Int $!snowflake = 0;
 
-#has Supplier $.messages;
+has Supplier $.messages;
 
-# This should actually be on channels
-has API::Discord::Message @.messages;
 has API::Discord::Channel %.channels;
+
+method !start-message-tap {
+    $!conn.messages.tap( -> $message {
+        self!handle-message($message);
+        $!messages.emit($message);
+    })
+}
+
+method !handle-message($message) {
+}
 
 submethod DESTROY {
     $!conn.close;
@@ -33,11 +41,11 @@ method connect($session-id?, $sequence?) returns Promise {
       |(:$sequence if $sequence),
     );
 
-    return $!conn.opener.then({ $!conn.closer });
+    return $!conn.opener.then({ self!start-message-tap; $!conn.closer });
 }
 
 method messages returns Supply {
-    $!conn.messages;
+    $!messages.Supply;
 }
 
 multi method send-message(API::Discord::Message $m) {
