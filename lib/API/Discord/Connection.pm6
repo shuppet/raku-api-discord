@@ -170,7 +170,7 @@ method close {
 }
 
 multi method send(API::Discord::Message $m) {
-    $!rest.send($m).then(-> $res { $.messages.emit($m) });;
+    $!rest.send($m).then(-> $prom { $.messages.emit($prom.result) });;
 }
 multi method send(Hash $json) {
     # TODO : handle error here?
