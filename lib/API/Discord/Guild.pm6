@@ -34,6 +34,7 @@ has %.ENDPOINTS is readonly =
     modify-nick => '/guilds/{guild-id}/members/@me/nick',
     get-invites => '/guilds/{guild-id}/invites',
     get-voice-regions => '/guilds/{guild-id}/regions',
+    audit-log => '/guilds/{guild.id}/audit-logs',
     vanity-url => '/guilds/{guild-id}/vanity-url',
 ;
 
