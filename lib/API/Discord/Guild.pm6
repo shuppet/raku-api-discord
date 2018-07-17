@@ -38,3 +38,34 @@ has %.ENDPOINTS is readonly =
     vanity-url => '/guilds/{guild-id}/vanity-url',
 ;
 
+has Int  $.id;
+has Str  $.name;
+has Str  $.icon;
+has Str  $.splash;
+has Bool $.is-owner;
+has Int  $.owner-id;
+has Int  $.permissions;
+has Str  $.region;
+has Int  $.afk-channel-id;
+has Int  $.afk-channel-timeout;
+has Bool $.is-embeddable;
+has Int  $.embed-channel-id;
+has Int  $.verification-level;
+has Int  $.default-notification-level;
+has Int  $.content-filter-level;
+has API::Discord::Guild @.roles;
+has API::Discord::Guild @.emojis;
+has API::Discord::Guild @.features;
+has Int  $.mfa-level-required;
+has Int  $.application-id;
+has Bool $.is-widget-enabled;
+has Int  $.widget-channel-id;
+has Int  $.system-channel-id;
+has DateTime $.joined-at;
+has Bool $.is-large;
+has Bool $.is-unavailable;
+has Int  $.member-count;
+has API::Discord::Guild @.voice-states;
+has API::Discord::Guild @.members;
+has API::Discord::Guild @.channels;
+has API::Discord::Guild @.presences;
