@@ -69,3 +69,19 @@ has API::Discord::Guild @.voice-states;
 has API::Discord::Guild @.members;
 has API::Discord::Guild @.channels;
 has API::Discord::Guild @.presences;
+
+enum MessageNotificationLevel (
+        <all-messages only-mentions>
+);
+
+enum ContentFilterLevel (
+	<disabled members-without-roles all-members>
+);
+
+enum MFALevel (
+	<none elevated>
+);
+
+enum VerificationLevel (
+	<none low medium high very-high>
+);
