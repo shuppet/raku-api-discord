@@ -12,6 +12,9 @@ class Activity {
     has $.party-id;
 }
 
+class Reaction {
+}
+
 enum Type (
     <default recipient-add> ...
 );
@@ -23,15 +26,34 @@ has %.ENDPOINTS is readonly =
     delete => '/channels/{channel-id}/messages/{message-id}',
 ;
 
-has $.id;
-has $.channel-id;
-has API::Discord::Channel $.channel;# will lazy { API::Discord::Channel.new($.channel-id) };
-has API::Discord::User $.author;
-
-#has API::Discord::Reaction %.reactions;
+has Int  $.id;
+has Int  $.channel-id;
+has Int  $.nonce;
+has Str  $.content;
+has Bool $.is-tts;
+has Bool $.mentions-everyone;
+has Bool $.is-pinned;
+has Int  $.webhook-id;
+has Int  @.mentions-role-ids;
 has Type $.type;
 
-...; # Rest of properties
+has DateTime $.timestamp;
+has DateTime $.edited;
+
+has API::Discord::Channel $.channel;# will lazy { API::Discord::Channel.new($.channel-id) };
+has API::Discord::User $.author;
+has API::Discord::User @.mentions;
+has API::Discord::Role @.mentions-roles; # will lazy { ... }
+has API::Discord::Attachment @.attachments;
+has API::Discord::Embed @.embeds;
+# TODO: perhaps this should be emoji => count and we don't need the Reaction class.
+# (We can use Emoji objects as the keys if we want)
+has Reaction @.reactions;
+
+# TODO
+#has API::Discord::Activity $.activity;
+#has API::Discord::Application $.application;
+
 
 submethod TWEAK {
     if $!channel.defined {

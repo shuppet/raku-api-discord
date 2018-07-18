@@ -20,9 +20,9 @@ has API::Discord::Guild @.guilds;
 has Int  $.id;
 has Str  $.username;
 has Str  $.discriminator; # May start with 0 so we can't use int
-has Blob $.avatar; # The actual image
-has Str  $.avatar-hash; # The URL bit for the CDN
+has Blob $.avatar;        # The actual image
+has Str  $.avatar-hash;   # The URL bit for the CDN
 has Bool $.is-bot;
 has Bool $.mfa-enabled;
-has Bool $.is-verified;
+has Bool $.verified;
 has Str  $.email;
