@@ -1,4 +1,4 @@
-unit class API::Discord::Message does API::Discord::HTTPMessage;
+unit class API::Discord::Message does API::Discord::HTTPResource;
 
 class Activity {
     enum Type (
@@ -64,5 +64,42 @@ submethod TWEAK {
     }
 }
 
-method from-json { ... }
-method to-json { ... }
+method from-json (Hash $json) returns ::?CLASS {
+    # These keys we can lift straight out
+    my %constructor = $json<id nonce content type>:kv;
+
+    # These keys we sanitized for nice Perl6 people
+    %constructor<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids>
+        = $json<channel_id tts mention_everyone pinned webhook_id mention_roles>;
+
+    # These keys we can trivially inflate.
+    %constructor<timestamp> = DateTime.new($json<timestamp>);
+    %constructor<edited> = DateTime.new($json<edited_timestamp>) if $json<edited_timestamp>;
+
+    # These keys represent another level of data structure and are related
+    # objects, which should have their own from-json. However, we're not going
+    # to go and fetch related objects that are provided by ID; only ones that we
+    # already have the data for.
+    %constructor<author> = API::Discord::User.from-json($json<author>);
+    %constructor<mentions> = $json<mentions>.map: API::Discord::User.from-json($_);
+    %constructor<attachments> = $json<attachments>.map: API::Discord::Attachment.from-json($_);
+    %constructor<embeds> = $json<embeds>.map: API::Discord::Embed.from-json($_);
+    %constructor<reactions> = $json<reactions>.map: Reaction.from-json($_);
+
+    return self.new(|%constructor);
+}
+
+method to-json returns Hash {
+    my %self := self.Capture.hash;
+    my %json = %self<id nonce content type timestamp>:kv;
+    %json<edited_timestamp> = $_ with %self<edited>;
+
+    %json<channel_id tts mention_everyone pinned webhook_id mention_roles>
+        = %self<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids>;
+
+    for <author mentions attachments embeds reactions> -> $prop {
+        %self{$prop} andthen %json{$prop} = .to-json
+    }
+
+    return %json;
+}
