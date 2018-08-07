@@ -1,7 +1,7 @@
 unit class API::Discord::Connection;
 
 use API::Discord::Types;
-use API::Discord::Connection::REST;
+use API::Discord::HTTPResource;
 # Probably make API::Discord::Connection::WS later for hb etc
 use Cro::WebSocket::Client::Connection;
 use Cro::HTTP::Client;
@@ -12,7 +12,7 @@ has Int $.sequence;
 has Str $.session-id;
 
 has Cro::WebSocket::Client::Connection $.websocket;
-has API::Discord::Connection::REST $.rest;
+has Cro::HTTP::Client $.rest;
 has Promise $.opener;
 has Supplier $!messages;
 has Supply $!heartbeat;
@@ -26,7 +26,7 @@ submethod TWEAK {
             self._on_ws_connect($connection.result);
         });
 
-    $!rest = API::Discord::Connection::REST.new:
+    $!rest = Cro::HTTP::Client.new(
         content-type => 'application/json',
         http => '1.1',
         headers => [
@@ -37,7 +37,8 @@ submethod TWEAK {
             Connection => 'keep-alive',
 
         ]
-    ;
+    )
+    but RESTy["https://discordapp.com/api"];
 }
 
 method _on_ws_connect($!websocket) {

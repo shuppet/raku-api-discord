@@ -1,7 +1,8 @@
-unit module API::Discord;
+unit package API::Discord;
 
-role RESTy is export {
-    has $.base-url;
+role RESTy[$base-url] is export {
+    has $.base-url = $base-url;
+
     method send(Str $endpoint, %json) {
         say "Send {%json.gist} to $.base-url$endpoint";
 
