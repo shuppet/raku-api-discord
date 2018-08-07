@@ -1,4 +1,5 @@
 unit class API::Discord::User does API::Discord::HTTPMessage;
+    # There's no update for others, but we consider @me an ID.
 
 has %.ENDPOINTS =
     read => '/users/{user-id}',
@@ -14,8 +15,8 @@ has %.ENDPOINTS =
     get-connections => '/users/{user-id}/connections'
 ;
 
-has API::Discord::Channel @.dms;
-has API::Discord::Guild @.guilds;
+has @.dms;
+has @.guilds;
 
 has Int  $.id;
 has Str  $.username;

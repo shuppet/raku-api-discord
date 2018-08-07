@@ -53,9 +53,6 @@ has Int  $.embed-channel-id;
 has Int  $.verification-level;
 has Int  $.default-notification-level;
 has Int  $.content-filter-level;
-has API::Discord::Guild @.roles;
-has API::Discord::Guild @.emojis;
-has API::Discord::Guild @.features;
 has Int  $.mfa-level-required;
 has Int  $.application-id;
 has Bool $.is-widget-enabled;
@@ -65,23 +62,27 @@ has DateTime $.joined-at;
 has Bool $.is-large;
 has Bool $.is-unavailable;
 has Int  $.member-count;
-has API::Discord::Guild @.voice-states;
-has API::Discord::Guild @.members;
-has API::Discord::Guild @.channels;
-has API::Discord::Guild @.presences;
+
+has @.roles;
+has @.emojis;
+has @.features;
+has @.voice-states;
+has @.members;
+has @.channels;
+has @.presences;
 
 enum MessageNotificationLevel (
-        <all-messages only-mentions>
+    <all-messages only-mentions>
 );
 
 enum ContentFilterLevel (
-	<disabled members-without-roles all-members>
+    <disabled members-without-roles all-members>
 );
 
 enum MFALevel (
-	<none elevated>
+    <none elevated>
 );
 
 enum VerificationLevel (
-	<none low medium high very-high>
+    <none low medium high very-high>
 );

@@ -1,4 +1,5 @@
-unit class API::Discord::Message does API::Discord::HTTPResource;
+use API::Discord::HTTPResource;
+unit class API::Discord::Message does HTTPResource;
 
 class Activity {
     enum Type (
@@ -16,7 +17,7 @@ class Reaction {
 }
 
 enum Type (
-    <default recipient-add> ...
+    <default recipient-add>
 );
 
 has %.ENDPOINTS is readonly =
@@ -40,15 +41,15 @@ has Type $.type;
 has DateTime $.timestamp;
 has DateTime $.edited;
 
-has API::Discord::Channel $.channel;# will lazy { API::Discord::Channel.new($.channel-id) };
-has API::Discord::User $.author;
-has API::Discord::User @.mentions;
-has API::Discord::Role @.mentions-roles; # will lazy { ... }
-has API::Discord::Attachment @.attachments;
-has API::Discord::Embed @.embeds;
+has $.channel;# will lazy { API::Discord::Channel.new($.channel-id) };
+has $.author;
+has @.mentions;
+#has @.mentions-roles; # will lazy { ... }
+#has @.attachments;
+#has @.embeds;
 # TODO: perhaps this should be emoji => count and we don't need the Reaction class.
 # (We can use Emoji objects as the keys if we want)
-has Reaction @.reactions;
+has @.reactions;
 
 # TODO
 #has API::Discord::Activity $.activity;

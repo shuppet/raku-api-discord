@@ -1,4 +1,7 @@
-unit class API::Discord::Channel does API::Discord::HTTPMessage;
+use API::Discord::HTTPResource;
+
+unit class API::Discord::Channel does HTTPResource;
+class API::Discord::Message {...};
 
 has %.ENDPOINTS is readonly =
     create => '/channels',

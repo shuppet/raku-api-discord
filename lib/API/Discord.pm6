@@ -17,7 +17,7 @@ has Int $!snowflake = 0;
 
 has Supplier $.messages;
 
-has API::Discord::Channel %.channels;
+has %.channels;
 
 method !start-message-tap {
     $!conn.messages.tap( -> $message {
