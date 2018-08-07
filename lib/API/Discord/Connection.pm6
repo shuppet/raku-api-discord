@@ -168,12 +168,3 @@ method close {
     #$!heartbeat.done;
     await $!websocket.close(code => 4001);
 }
-
-multi method send(API::Discord::Message $m) {
-    $!rest.send($m).then(-> $prom { $.messages.emit($prom.result) });;
-}
-multi method send(Hash $json) {
-    # TODO : handle error here?
-    $!rest.send($json);
-}
-
