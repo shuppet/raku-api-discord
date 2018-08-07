@@ -48,8 +48,9 @@ method messages returns Supply {
     $!messages.Supply;
 }
 
-multi method send-message(API::Discord::Message $m) {
-    $!conn.send($m);
+multi method send-message($m) {
+    # FIXME: decide how to translate "send" to "post" but only for message
+    #$!conn.send($m);
 }
 
 multi method send-message(Str :$message, Str :$to) {
@@ -65,7 +66,8 @@ multi method send-message(Str :$message, Str :$to) {
         embed => {},
     };
 
-    $!conn.send($json);
+    # FIXME: conn doesn't have a send any more
+    #$!conn.send($json);
 }
 
 method generate-snowflake {
