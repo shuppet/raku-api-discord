@@ -15,7 +15,7 @@ has Str $.token is required;
 # Docs say, increment number each time, per process
 has Int $!snowflake = 0;
 
-has Supplier $.messages;
+has Supplier $.messages = Supplier.new;
 
 has %.channels;
 
