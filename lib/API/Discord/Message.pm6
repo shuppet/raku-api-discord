@@ -1,5 +1,8 @@
 use API::Discord::HTTPResource;
+
 unit class API::Discord::Message does HTTPResource;
+class API::Discord::User { ... }
+class API::Discord::Channel { ... }
 
 class Activity {
     enum Type (

@@ -5,29 +5,30 @@ class API::Discord::Message {...};
 
 has %.ENDPOINTS is readonly =
     create => '/channels',
-    read => '/channels/{channel-id}',
-    update => '/channels/{channel-id}',
-    delete => '/channels/{channel-id}',
+    read => '/channels/{id}',
+    update => '/channels/{id}',
+    delete => '/channels/{id}',
 
-    get-messages => '/channels/{channel-id}/messages',
-    bulk-delete-messages => '/channels/{channel-id}/messages/bulk-delete',
+    get-messages => '/channels/{id}/messages',
+    bulk-delete-messages => '/channels/{id}/messages/bulk-delete',
 
-    edit-permissions => '/channels/{channel-id}/permissions/{overwrite-id}',
-    delete-permission => '/channels/{channel-id}/permissions/{overwrite-id}',
+    edit-permissions => '/channels/{id}/permissions/{overwrite-id}',
+    delete-permission => '/channels/{id}/permissions/{overwrite-id}',
 
-    get-invites => '/channels/{channel-id}/invites',
-    create-invite => '/channels/{channel-id}/invites',
+    get-invites => '/channels/{id}/invites',
+    create-invite => '/channels/{id}/invites',
 
-    trigger-typing => '/channels/{channel-id}/typing',
+    trigger-typing => '/channels/{id}/typing',
 
-    get-pinned-messages => '/channels/{channel-id}/pins',
-    add-pinned-message => '/channels/{channel-id}/pins/{message-id}',
-    delete-pinned-message => '/channels/{channel-id}/pins/{message-id}',
+    get-pinned-messages => '/channels/{id}/pins',
+    add-pinned-message => '/channels/{id}/pins/{message-id}',
+    delete-pinned-message => '/channels/{id}/pins/{message-id}',
 
-    add-group-recipient => '/channels/{channel-id}/recipients/{user-id}',
-    remove-group-recipient => '/channels/{channel-id}/recipients/{user-id}',
+    add-group-recipient => '/channels/{id}/recipients/{user-id}',
+    remove-group-recipient => '/channels/{id}/recipients/{user-id}',
 ;
 
+has $.id;
 has API::Discord::Message @.messages;
 
 method fetch-messages(Int $how-many) {
