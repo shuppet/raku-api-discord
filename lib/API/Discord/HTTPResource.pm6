@@ -1,24 +1,24 @@
 unit package API::Discord;
 
+role JSONy is export {
+    # No need for from-json(Str) because Cro does that for us.
+    method from-json ($json) returns ::?CLASS { ... }
+    method to-json returns Hash { ... }
+}
+
 role RESTy[$base-url] is export {
     has $.base-url = $base-url;
 
-    method send(Str $endpoint, JSONy $object:D) {
+    method send(Str $endpoint, JSONy:D $object) {
         say "Send {$object.to-json} to $.base-url$endpoint";
 
         self.post: "$.base-url$endpoint", body => $object.to-json;
     }
 
-    method fetch(Str $endpoint, JSONy $class:U -> JSONy) {
+    method fetch(Str $endpoint, JSONy:U $class) returns JSONy {
         my $json = self.get($endpoint);
         $class.from-json($json);
     }
-}
-
-role JSONy is export {
-    # No need for from-json(Str) because Cro does that for us.
-    method from-json ($json) returns ::?CLASS { ... }
-    method to-json returns Hash { ... }
 }
 
 role HTTPResource does JSONy is export {
@@ -30,7 +30,7 @@ role HTTPResource does JSONy is export {
     }
     method read(RESTy $rest) {
         my $endpoint = %.ENDPOINTS<read>.format(self);
-        $rest.fetch($endpoint, $::?CLASS);
+        $rest.fetch($endpoint, ::?CLASS);
     }
 
     #method update;
