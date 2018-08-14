@@ -83,3 +83,19 @@ method generate-snowflake {
 
     return ($time.Int +< 22) + ($worker +< 17) + ($proc +< 12) + $s;
 }
+
+####### Object factories
+# get-* will fetch
+# create-* will construct
+
+sub get-messages (Int @message-ids) returns Array[Message] {
+}
+
+sub create-message ($json) returns Message {
+}
+
+sub get-channels (Int @channel-ids) returns Array[Channel] {
+}
+
+sub create-channel ($json) returns Channel {
+}
