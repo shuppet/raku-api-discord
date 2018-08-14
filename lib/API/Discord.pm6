@@ -36,9 +36,8 @@ method !handle-message($message) {
         for $message<d><channels>.values -> $c {
             %.channels{$c<id>} = self.create-channel($c);
         }
-
-        say %.channels.gist;
     }
+    else { $message.say }
 }
 
 submethod DESTROY {
