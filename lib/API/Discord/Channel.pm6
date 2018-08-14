@@ -1,6 +1,6 @@
 use API::Discord::Object;
 
-unit class API::Discord::Channel is API::Discord::Object;
+unit class API::Discord::Channel does API::Discord::Object;
 
 has %.ENDPOINTS is readonly =
     create => '/channels',

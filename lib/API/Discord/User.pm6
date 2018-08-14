@@ -1,4 +1,6 @@
-unit class API::Discord::User does API::Discord::HTTPMessage;
+use API::Discord::Object;
+
+unit class API::Discord::User does API::Discord::Object;
     # There's no update for others, but we consider @me an ID.
 
 has %.ENDPOINTS =
@@ -27,3 +29,6 @@ has Bool $.is-bot;
 has Bool $.mfa-enabled;
 has Bool $.verified;
 has Str  $.email;
+
+method to-json {}
+method from-json ($json) {}

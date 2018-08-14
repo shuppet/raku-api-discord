@@ -1,5 +1,6 @@
 use API::Discord::Object;
-unit class API::Discord::Message is API::Discord::Object;
+
+unit class API::Discord::Message does API::Discord::Object;
 
 class Activity {
     enum Type (
