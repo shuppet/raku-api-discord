@@ -74,19 +74,19 @@ has @.channels;
 has @.presences;
 
 enum MessageNotificationLevel (
-    <all-messages only-mentions>
+    <notification-all-messages notification-only-mentions>
 );
 
 enum ContentFilterLevel (
-    <disabled members-without-roles all-members>
+    <filter-disabled filter-members-without-roles filter-all-members>
 );
 
 enum MFALevel (
-    <none elevated>
+    <mfa-none mfa-elevated>
 );
 
 enum VerificationLevel (
-    <none low medium high very-high>
+    <verification-none verification-low verification-medium verification-high verification-very-high>
 );
 
 method to-json {}
