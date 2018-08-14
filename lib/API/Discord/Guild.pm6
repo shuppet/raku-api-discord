@@ -1,4 +1,6 @@
-unit class API::Discord::Guild does API::Discord::HTTPMessage;
+use API::Discord::Object;
+
+unit class API::Discord::Guild is API::Discord::Object;
 
 has %.ENDPOINTS is readonly =
     create => '/guilds',

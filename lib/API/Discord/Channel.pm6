@@ -1,6 +1,6 @@
-use API::Discord::HTTPResource;
+use API::Discord::Object;
 
-unit class API::Discord::Channel does HTTPResource;
+unit class API::Discord::Channel is API::Discord::Object;
 
 has %.ENDPOINTS is readonly =
     create => '/channels',
@@ -28,7 +28,7 @@ has %.ENDPOINTS is readonly =
 ;
 
 has $.id;
-has API::Discord::Message @.messages;
+has @.messages;
 
 method fetch-messages(Int $how-many) {
     ...

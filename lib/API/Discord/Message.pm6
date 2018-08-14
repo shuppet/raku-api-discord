@@ -1,8 +1,5 @@
-use API::Discord::HTTPResource;
-
-unit class API::Discord::Message does HTTPResource;
-class API::Discord::User { ... }
-class API::Discord::Channel { ... }
+use API::Discord::Object;
+unit class API::Discord::Message is API::Discord::Object;
 
 class Activity {
     enum Type (
@@ -84,7 +81,7 @@ method from-json (Hash $json) returns ::?CLASS {
     # objects, which should have their own from-json. However, we're not going
     # to go and fetch related objects that are provided by ID; only ones that we
     # already have the data for.
-    %constructor<author> = API::Discord::User.from-json($json<author>);
+    %constructor<author> = $.api.User.from-json($json<author>);
     %constructor<mentions> = $json<mentions>.map: API::Discord::User.from-json($_);
     %constructor<attachments> = $json<attachments>.map: API::Discord::Attachment.from-json($_);
     %constructor<embeds> = $json<embeds>.map: API::Discord::Embed.from-json($_);

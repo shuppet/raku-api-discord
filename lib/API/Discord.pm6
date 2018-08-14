@@ -1,10 +1,15 @@
-unit class API::Discord is export;
-
-#use Timer::Breakable;
 use API::Discord::Types;
 use API::Discord::Connection;
+
+use API::Discord::Channel;
+use API::Discord::Guild;
+use API::Discord::Message;
+use API::Discord::User;
+
 use Cro::WebSocket::Client;
 use Cro::WebSocket::Client::Connection;
+
+unit class API::Discord is export;
 
 has Connection $!conn;
 # Although a number it goes in a URL so it's a string

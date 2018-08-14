@@ -21,13 +21,14 @@ role RESTy[$base-url] is export {
     }
 }
 
-role HTTPResource does JSONy is export {
+role HTTPResource is export {
     method create(RESTy $rest) {
         # FIXME: We will have to ask self for the formatted create endpoint
         # But maybe we should make endpoints easier to deal with first
         my $endpoint = %.ENDPOINTS<create>.format(self);
         $rest.send($endpoint, self).then({ self if $^a.result });
     }
+
     method read(RESTy $rest) {
         my $endpoint = %.ENDPOINTS<read>.format(self);
         $rest.fetch($endpoint, ::?CLASS);
