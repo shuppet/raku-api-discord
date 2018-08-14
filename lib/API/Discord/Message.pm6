@@ -28,15 +28,15 @@ has %.ENDPOINTS is readonly =
     delete => '/channels/{channel-id}/messages/{message-id}',
 ;
 
-has Int  $.id;
-has Int  $.channel-id;
-has Int  $.nonce;
-has Str  $.content;
-has Bool $.is-tts;
-has Bool $.mentions-everyone;
-has Bool $.is-pinned;
-has Int  $.webhook-id;
-has Int  @.mentions-role-ids;
+has $.id;
+has $.channel-id;
+has $.nonce;
+has $.content;
+has $.is-tts;
+has $.mentions-everyone;
+has $.is-pinned;
+has $.webhook-id;
+has @.mentions-role-ids;
 has Type $.type;
 
 has DateTime $.timestamp;

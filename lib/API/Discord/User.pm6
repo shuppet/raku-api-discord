@@ -20,15 +20,15 @@ has %.ENDPOINTS =
 has @.dms;
 has @.guilds;
 
-has Int  $.id;
-has Str  $.username;
-has Str  $.discriminator; # May start with 0 so we can't use int
-has Blob $.avatar;        # The actual image
-has Str  $.avatar-hash;   # The URL bit for the CDN
-has Bool $.is-bot;
-has Bool $.mfa-enabled;
-has Bool $.verified;
-has Str  $.email;
+has $.id;
+has $.username;
+has $.discriminator; # May start with 0 so we can't use int
+has $.avatar;        # The actual image
+has $.avatar-hash;   # The URL bit for the CDN
+has $.is-bot;
+has $.mfa-enabled;
+has $.verified;
+has $.email;
 
 method to-json {}
 method from-json ($json) {}
