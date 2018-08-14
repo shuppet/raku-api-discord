@@ -32,6 +32,13 @@ method !start-message-tap {
 }
 
 method !handle-message($message) {
+    if $message<d><channels> {
+        for $message<d><channels>.values -> $c {
+            %.channels{$c<id>} = self.create-channel($c);
+        }
+
+        say %.channels.gist;
+    }
 }
 
 submethod DESTROY {
@@ -88,14 +95,15 @@ method generate-snowflake {
 # get-* will fetch
 # create-* will construct
 
-sub get-messages (Int @message-ids) returns Array[Message] {
+method get-messages (Int @message-ids) returns Array[Message] {
 }
 
-sub create-message ($json) returns Message {
+method create-message ($json) returns Message {
 }
 
-sub get-channels (Int @channel-ids) returns Array[Channel] {
+method get-channels (Int @channel-ids) returns Array[Channel] {
 }
 
-sub create-channel ($json) returns Channel {
+method create-channel ($json) returns API::Discord::Channel {
+    API::Discord::Channel.from-json($json);
 }
