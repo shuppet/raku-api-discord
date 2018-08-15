@@ -1,4 +1,5 @@
 unit module API::Discord::Endpoints;
+class API::Discord::HTTPResource { ... }
 
 class X::API::Discord::Endpoint::NotEnoughArguments is Exception {
     has @.required is required;
@@ -28,4 +29,8 @@ sub endpoint-for ($resource, $method, *%args) is export {
     }
 
     return S:g['{' ( .+? ) '}' ] = %args{$/[0]} given $e;
+}
+
+multi method format(Str:D: API::Discord::HTTPResource $r) returns Str {
+    # get format data from object
 }

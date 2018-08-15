@@ -1,7 +1,7 @@
 unit class API::Discord::Connection;
 
 use API::Discord::Types;
-use API::Discord::Connection::REST;
+use API::Discord::HTTPResource;
 # Probably make API::Discord::Connection::WS later for hb etc
 use Cro::WebSocket::Client::Connection;
 use Cro::HTTP::Client;
@@ -12,7 +12,7 @@ has Int $.sequence;
 has Str $.session-id;
 
 has Cro::WebSocket::Client::Connection $.websocket;
-has API::Discord::Connection::REST $.rest;
+has Cro::HTTP::Client $.rest;
 has Promise $.opener;
 has Supplier $!messages;
 has Supply $!heartbeat;
@@ -20,30 +20,39 @@ has Promise $!hb-ack;
 has Promise $.closer;
 
 submethod TWEAK {
+    $!rest = Cro::HTTP::Client.new(
+        content-type => 'application/json',
+        http => '1.1',
+        headers => [
+            Authorization => 'Bot ' ~ $!token,
+            User-agent => "DiscordBot (https://github.io/kawaiiforms/p6-api-discord, 0.0.1)",
+            Accept => 'application/json, */*',
+            Accept-encoding => 'gzip, deflate',
+            Connection => 'keep-alive',
+
+        ]
+    )
+    but RESTy["https://discordapp.com/api"];
+
+    $!messages = Supplier::Preserving.new;
+
+    self.connect();
+}
+
+method connect() {
     my $cli = Cro::WebSocket::Client.new: :json;
     $!opener = $cli.connect($!url)
         .then( -> $connection {
             self._on_ws_connect($connection.result);
         });
 
-    $!rest = API::Discord::Connection::REST.new:
-        content-type => 'application/json',
-        http => '1.1',
-        headers => [
-            Authorization => 'Bot ' ~ $!token,
-            User-agent => "DiscordBot (https://github.io/kawaiiforms/p6-api-discord, 0.0.1)",
-        ]
-    ;
 }
 
 method _on_ws_connect($!websocket) {
     my $messages = $!websocket.messages;
     $messages.tap:
-        { self.handle-message($^a) },
-        done => { self.auth() }
+        { self.handle-message($^a) }
     ;
-
-    $!messages = Supplier::Preserving.new;
 
     $!closer = $!websocket.closer.then(-> $closer {
         my $why = $closer.result;
@@ -92,9 +101,8 @@ method handle-opcode($json) {
             Promise.in(4.rand+1).then({ self.auth });
         }
         when OPCODE::hello {
-            return if $!heartbeat;
-
             self.auth;
+            return if $!heartbeat;
             self.setup-heartbeat($payload<heartbeat_interval>/1000);
         }
         when OPCODE::reconnect {
@@ -126,7 +134,8 @@ method setup-heartbeat($interval) {
         ).then({
             return if $!hb-ack;
             note "Heartbeat wasn't acknowledged! ☹";
-            self.close;
+            note "Attempting to reconnect...";
+            self.connect;
         });
     };
 }
@@ -138,6 +147,16 @@ method ack-heartbeat-ack {
 
 method auth {
     if ($!session-id and $!sequence) {
+        note "Resuming session $!session-id at sequence $!sequence";
+        $!websocket.send({
+            op => OPCODE::resume,
+            d => {
+                token => $!token,
+                session_id => $!session-id,
+                sequence => $!sequence,
+            }
+        });
+        return;
     }
 
     $!websocket.send({
@@ -164,8 +183,3 @@ method close {
     #$!heartbeat.done;
     await $!websocket.close(code => 4001);
 }
-
-method send(Hash $json) {
-    $!rest.send($json);
-}
-
