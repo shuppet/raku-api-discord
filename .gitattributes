@@ -1,3 +1,4 @@
 * text=auto eol=lf
+diagram.dia -text -eol
 .gitattributes export-ignore
 .gitignore export-ignore
