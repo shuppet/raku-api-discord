@@ -82,11 +82,12 @@ method from-json (Hash $json) returns ::?CLASS {
     # objects, which should have their own from-json. However, we're not going
     # to go and fetch related objects that are provided by ID; only ones that we
     # already have the data for.
-    %constructor<author> = $.api.User.from-json($json<author>);
-    %constructor<mentions> = $json<mentions>.map: API::Discord::User.from-json($_);
-    %constructor<attachments> = $json<attachments>.map: API::Discord::Attachment.from-json($_);
-    %constructor<embeds> = $json<embeds>.map: API::Discord::Embed.from-json($_);
-    %constructor<reactions> = $json<reactions>.map: Reaction.from-json($_);
+# TODO: Decide where these factories should go, and then use them.
+#    %constructor<author> = $.api.User.from-json($json<author>);
+#    %constructor<mentions> = $json<mentions>.map: $.api.create-user($_);
+#    %constructor<attachments> = $json<attachments>.map: self.create-attachment($_);
+#    %constructor<embeds> = $json<embeds>.map: self.create-embed($_);
+#    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
 
     return self.new(|%constructor);
 }
