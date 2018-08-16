@@ -180,8 +180,11 @@ method generate-snowflake {
 # get-* will fetch
 # create-* will construct
 
+#| Returns a single Message object by ID, fetching if necessary.
+method get-message ($id) returns Message {}
+
 #| Returns an array of Message objects from their IDs. Fetches as necessary.
-method get-messages (Int @message-ids) returns Array[Message] {
+method get-messages (@message-ids) returns Array[Message] {
 }
 
 #| Returns a Message object from a JSON-shaped hash.
@@ -189,11 +192,25 @@ method create-message (%json) returns Message {
     API::Discord::Message.from-json(%json);
 }
 
+#| Returns a single Channel object by ID, fetching if necessary.
+method get-channel ($id) returns Channel {}
+
 #| Returns an array of Channel objects from their IDs. Fetches as necessary.
-method get-channels (Int @channel-ids) returns Array[Channel] {
+method get-channels (@channel-ids) returns Array[Channel] {
 }
 
 #| Returns a Channel object from a JSON-shaped hash.
 method create-channel (%json) returns API::Discord::Channel {
     API::Discord::Channel.from-json(%json);
+}
+
+#| Returns a single Guild object by ID, fetching if necessary.
+method get-guild ($id) returns Guild {}
+
+#| Returns an array of Guild objects from their IDs. Fetches as necessary.
+method get-guilds (@guild-ids) returns Array[Guild] {
+}
+
+#| Returns a Guild object from a JSON-shaped hash.
+method create-guild (%json) returns Guild {
 }
