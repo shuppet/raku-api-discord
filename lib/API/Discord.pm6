@@ -1,5 +1,6 @@
 use API::Discord::Types;
 use API::Discord::Connection;
+use API::Discord::HTTPResource;
 
 use API::Discord::Channel;
 use API::Discord::Guild;
@@ -58,8 +59,8 @@ send a Message, you might do it via Channel.
 
 Channel and Guild are usually your entrypoints to doing things.
 
-    $api.get-channels($id)[0].send-message("Hi I'm a bot");
-    $api.get-guilds($id)[0].create-channel({ ... });
+    $api.get-channel($id).send-message("Hi I'm a bot");
+    $api.get-guild($id).create-channel({ ... });
 
 The other entrypoint to information are the message and event supplies. These
 emit complete objects, which can be used to perform further actions. For
@@ -73,6 +74,49 @@ has send-message:
 All of these classes use the API to fetch and send if they need to. This
 prevents them from having to know about one another, which would result in
 circular dependencies. It also makes them easier to test N<If we ever did that>.
+
+Ultimately, you can always just create and send an object to Discord if you want
+to do it that way.
+
+    my $m = API::Discord::Message.new(...);
+    $api.send($m);
+
+This requires you to know all the parts you need for the operation to be
+successful, however.
+
+=head2 CRUD
+
+The core of the Discord API is simple CRUD mechanics over REST. The general idea
+in API::Discord is that if an object has an ID, then C<send> will update it;
+otherwise, it will create it and populate the ID from the response.
+
+This way, the same few methods handle most of the interaction you will have with
+Discord: editing a message is done by calling C<send> with a Message object that
+already has an ID; whereas posting a new message would simply be calling C<send>
+with a message with no ID, but of course a channel ID instead.
+
+API::Discord also handles deflating your objects into JSON. The structures
+defined by the Discord docs are supported recursively, which means if you set an
+object on another object, the inner object will also be deflated—into the
+correct JSON property—to be sent along with the outer object. However, if the
+Discord API doesn't support that structure in a particular situation, it just
+won't try to do it.
+
+For example, you can set an Embed on a Message and just send the Message, and
+this will serialise the Embed and send that too.
+
+    my $m = API::Discord::Message.new(:channel($channel));
+    $m.embed(...);
+
+    API::Discord.send($m);
+
+This example will serialise the Message and the Embed and send them, but will
+not attempt to serialise the entire Channel object into the Message object
+because that is not supported. Instead, it will take the channel ID from the
+Channel object and put that in the expected place.
+
+Naturally, one cannot delete an object with no ID, just as one cannot attempt to
+read an object given anything but an ID. (Searching notwithstanding.)
 
 =head1 PROPERTIES
 
@@ -151,7 +195,18 @@ method generate-snowflake {
     return ($time.Int +< 22) + ($worker +< 17) + ($proc +< 12) + $s;
 }
 
-####### Object factories
+# Create/update
+#| Sends an object to Discord B<TODO>
+method send (JSONy $object) returns Promise {}
+
+# Delete
+#| Deletes the object B<TODO>
+method delete (JSONy $object) returns Promise {}
+
+# Read
+#| Fetches the object by ID, given a type object B<TODO>
+method fetch (API::Discord::Object:U, $id) returns API::Discord::Object {}
+
 # get-* will fetch
 # create-* will construct
 
