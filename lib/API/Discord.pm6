@@ -141,31 +141,6 @@ method events returns Supply {
     $!events.Supply;
 }
 
-# Probably remove these
-#| Sends a Message object - DEPRECATED
-multi method send-message($m) {
-    # FIXME: decide how to translate "send" to "post" but only for message
-    #$!conn.send($m);
-}
-
-#| Constructs a Message object and then sends it - DEPRECATED
-multi method send-message(Str :$message, Str :$to) {
-    # my $c = %.channels{$to} or die;
-    # my $m = API::Discord::Message.new(... content => $message, channel => $c)
-    # self.send-message($m)
-    my $json = {
-        tts => False,
-        type => 0,
-        channel_id => $to,
-        content => $message,
-        nonce => self.generate-snowflake,
-        embed => {},
-    };
-
-    # FIXME: conn doesn't have a send any more
-    #$!conn.send($json);
-}
-
 #| Creates an integer using the snowflake algorithm, guaranteed unique probably.
 method generate-snowflake {
     my $time = DateTime.now - DateTime.new(year => 2015);
