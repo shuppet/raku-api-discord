@@ -4,3 +4,45 @@
 top of [`Cro::WebSocket::Client`](https://github.com/croservices/cro-websocket)
 and [`Cro::HTTP::Client`](https://github.com/croservices/cro-http), this allows
 for fast asynchronous operations between your application and the API.
+
+## Installation
+
+### ... from zef
+
+```
+zef install API::Discord
+```
+
+### ... from source
+
+## Usage
+
+Full documentation can be found by reading the [wiki](https://github.com/kawaiiforums/p6-api-discord/wiki) attached to this repository, or by reading the pod directly from the module source.
+
+```
+p6doc API::Discord
+```
+
+## Example
+
+`API::Discord` is designed to do all the hard work for you. Let us handle the connection, authentication, heartbeats, message parsing and all that other boring stuff - leaving you to focus on writing logic for your applications.
+
+```perl6
+#!perl6
+
+use API::Discord;
+
+sub MAIN($token) {
+    my $discord = API::Discord.new(:$token);
+
+    await $discord.connect;
+
+    react {
+        whenever $discord.messages -> $message {
+            $message.channel.send-message(
+                $message.content
+            );
+        }
+    }
+}
+```
