@@ -40,9 +40,7 @@ enum Type (
     <default recipient-add>
 );
 
-=begin head1
-PROPERTIES
-=end head1
+=head1 PROPERTIES
 
 #! See L<API::Discord::RESTy> for endpoint discussion
 has %.ENDPOINTS is readonly =
@@ -56,11 +54,7 @@ has %.ENDPOINTS is readonly =
 
 =head2 JSON fields
 
-Most JSON fields use the same name as they do in the Discord documentation,
-except with dashes instead of underscores.
-
-Some fields have had their names change to protect the innocent. And to make
-them more legible when used.
+See L<API::Discord::Object> for JSON fields discussion
 
     < id channel-id nonce content is-tts mentions-everyone is-pinned webhook-id
     mentions-role-ids type timestamp edited >
@@ -84,7 +78,7 @@ has DateTime $.edited;
 =begin pod
 =head2 Object accessors
 
-Some JSON fields imply related objects. These properties hold the appropriate object.
+See L<API::Discord::Object> for Object properties discussion
 
     < channel author mentions mentions-roles attachments embeds reactions >
 
