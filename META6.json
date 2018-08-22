@@ -4,7 +4,7 @@
         "Kane 'kawaii' Valentine <kane@cute.im>"
     ],
     "depends" : [
-        "Cro::Websocket::Client"
+        "Cro::Websocket"
     ],
     "description" : "Perl6 module for interacting with the Discord API.",
     "licence" : "BSD 3-Clause License",
