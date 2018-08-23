@@ -3,6 +3,21 @@ use API::Discord::Object;
 unit class API::Discord::User does API::Discord::Object;
     # There's no update for others, but we consider @me an ID.
 
+=begin pod
+
+=head1 NAME
+
+API::Discord::User - Represents Discord user
+
+=head1 DESCRIPTION
+
+Represents a Discord user, usually sent to use via the websocket. See
+L<https://discordapp.com/developers/docs/resources/user>.
+
+Users cannot be created or deleted.
+
+=end pod
+
 has %.ENDPOINTS =
     read => '/users/{user-id}',
     update => '/users/{user-id}',

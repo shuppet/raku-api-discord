@@ -1,25 +1,71 @@
 unit class API::Discord::Connection;
 
+=begin pod
+
+=head1 NAME
+
+API::Discord::Connection - Combines a websocket and a REST client
+
+=head1 DESCRIPTION
+
+Discord sends us information over the websocket, and we send it stuff over the
+REST client. Mostly.
+
+This is used internally and probably of limited use otherwise.
+
+=head1 SYNOPSIS
+
+    my $c = API::Discord::Connection.new:
+        :url(wss://...)
+        :$token
+    ;
+
+    $c.closer.then({ say ":( $^a" });
+
+    ... # other stuff
+
+=head1 PROPERTIES
+
+=end pod
+
 use API::Discord::Types;
 use API::Discord::HTTPResource;
 # Probably make API::Discord::Connection::WS later for hb etc
 use Cro::WebSocket::Client::Connection;
 use Cro::HTTP::Client;
 
+#| Websocket URL
 has Str $.url is required;
+#| User's bot/API token
 has Str $.token is required;
+#| Auto-populated from received websocket messages. Used to resume.
 has Int $.sequence;
+#| Auto-populated from received websocket messages. Used to resume.
 has Str $.session-id;
 
-has Cro::WebSocket::Client::Connection $.websocket;
-has Cro::HTTP::Client $.rest;
-has Promise $.opener;
+has Cro::WebSocket::Client::Connection $!websocket;
+has Cro::HTTP::Client $!rest;
+has Promise $!opener;
 has Supplier $!messages;
 has Supply $!heartbeat;
 has Promise $!hb-ack;
+
+#| This Promise will be kept if the websocket closes. See L<Cro::WebSocket::Client>
 has Promise $.closer;
 
+=begin pod
+
+=head1 METHODS
+
+=head2 new
+
+Only C<$.url> and C<$.token> are required here.
+
+=end pod
+
 submethod TWEAK {
+    # TODO: We should also take the user-agent URL and the REST URL as
+    # constructor parameters
     $!rest = Cro::HTTP::Client.new(
         content-type => 'application/json',
         http => '1.1',
@@ -39,7 +85,10 @@ submethod TWEAK {
     self.connect();
 }
 
-method connect() {
+# TODO: Make private
+#| Connect to the websocket and handle the Promise. Returns the next Promise.
+#| Can be called again, apparently.
+method connect {
     my $cli = Cro::WebSocket::Client.new: :json;
     $!opener = $cli.connect($!url)
         .then( -> $connection {
@@ -48,6 +97,8 @@ method connect() {
 
 }
 
+# TODO: Make this private the p6 way not the p5 way
+#| Handle websocket messages and set up the closer Promise.
 method _on_ws_connect($!websocket) {
     my $messages = $!websocket.messages;
     $messages.tap:
@@ -61,6 +112,8 @@ method _on_ws_connect($!websocket) {
     });
 }
 
+# TODO: Make private?
+#| Text messages get checked for Discord-ness. Other messages... don't
 method handle-message($m) {
     # FIXME - this creates a Promise that may be broken, and we do nothing
     # about that. It was suggested I use the supply pattern instead, but I'm
@@ -70,6 +123,9 @@ method handle-message($m) {
 }
 
 # $json is JSON with an op in it
+# TODO: Make private?
+#| Deals with Discord messages and emits anything that the user might want to
+#| know about.
 method handle-opcode($json) {
     if $json<s> {
         $!sequence = $json<s>;
@@ -118,6 +174,8 @@ method handle-opcode($json) {
     }
 }
 
+#| Produce a regular Supply. We have to wait to do this because Discord tells us
+#| what regularity to use. If Discord doesn't ack the heartbeat, we reconnect.
 method setup-heartbeat($interval) {
     $!heartbeat = Supply.interval($interval);
     $!heartbeat.tap: {
@@ -135,16 +193,21 @@ method setup-heartbeat($interval) {
             return if $!hb-ack;
             note "Heartbeat wasn't acknowledged! ☹";
             note "Attempting to reconnect...";
+
+            # TODO: Configurable number of reattempts before we just bail
             self.connect;
         });
     };
 }
 
+#| Prevents the panic stations we get when we don't hear back from the
+#| heartbeat.
 method ack-heartbeat-ack {
     note "Still with us ♥";
     $!hb-ack.keep;
 }
 
+#| Resumes the session if there was one, or else sends the identify opcode.
 method auth {
     if ($!session-id and $!sequence) {
         note "Resuming session $!session-id at sequence $!sequence";
@@ -172,10 +235,13 @@ method auth {
     });
 }
 
+#| Wow, a public method! Tap this to receive messages we didn't handle as part
+#| of the protocol gubbins.
 method messages returns Supply {
     $!messages.Supply;
 }
 
+#| Call this to close the connection, I guess. We don't really use it.
 method close {
     say "Closing connection";
     CATCH { .say }
