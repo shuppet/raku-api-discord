@@ -2,6 +2,25 @@ use API::Discord::Object;
 
 unit class API::Discord::Message does API::Discord::Object;
 
+=begin pod
+
+=head1 NAME
+
+API::Discord::Message - Represents Discord message
+
+=head1 DESCRIPTION
+
+Represents a Discord message in a slightly tidier way than raw JSON. See
+L<https://discordapp.com/developers/docs/resources/channel#message-object>,
+unless it moves.
+
+Messages are usually created when the websocket sends us one. Each is associated
+with a Channel object.
+
+=head1 TYPES
+
+=end pod
+
 class Activity {
     enum Type (
         0 => 'join',
@@ -21,12 +40,26 @@ enum Type (
     <default recipient-add>
 );
 
+=head1 PROPERTIES
+
+#! See L<API::Discord::RESTy> for endpoint discussion
 has %.ENDPOINTS is readonly =
     create => '/channels/{channel-id}/messages',
     read => '/channels/{channel-id}/messages/{message-id}',
     update => '/channels/{channel-id}/messages/{message-id}',
     delete => '/channels/{channel-id}/messages/{message-id}',
 ;
+
+=begin pod
+
+=head2 JSON fields
+
+See L<API::Discord::Object> for JSON fields discussion
+
+    < id channel-id nonce content is-tts mentions-everyone is-pinned webhook-id
+    mentions-role-ids type timestamp edited >
+
+=end pod
 
 has $.id;
 has $.channel-id;
@@ -42,12 +75,21 @@ has Type $.type;
 has DateTime $.timestamp;
 has DateTime $.edited;
 
+=begin pod
+=head2 Object accessors
+
+See L<API::Discord::Object> for Object properties discussion
+
+    < channel author mentions mentions-roles attachments embeds reactions >
+
+=end pod
+
 has $.channel;# will lazy { API::Discord::Channel.new($.channel-id) };
 has $.author;
 has @.mentions;
-#has @.mentions-roles; # will lazy { ... }
-#has @.attachments;
-#has @.embeds;
+has @.mentions-roles; # will lazy { ... }
+has @.attachments;
+has @.embeds;
 # TODO: perhaps this should be emoji => count and we don't need the Reaction class.
 # (We can use Emoji objects as the keys if we want)
 has @.reactions;
@@ -56,7 +98,22 @@ has @.reactions;
 #has API::Discord::Activity $.activity;
 #has API::Discord::Application $.application;
 
+=begin pod
+=head1 METHODS
 
+=head2 new
+
+A Message can be constructed by providing any combination of the JSON accessors.
+
+If any of the object accessors are set, the corresponding ID(s) in the JSON set
+will be set, even if you passed that in too.
+
+This ensures that they will be consistent, at least until you break it on
+purpose.
+
+=end pod
+
+# TODO: pull the ID properties from any defined object properties
 submethod TWEAK {
     if $!channel.defined {
         $!channel-id = $!channel.id
@@ -66,6 +123,7 @@ submethod TWEAK {
     }
 }
 
+#| Inflates the Message object from the JSON we get from Discord
 method from-json (Hash $json) returns ::?CLASS {
     # These keys we can lift straight out
     my %constructor = $json<id nonce content type>:kv;
@@ -92,6 +150,7 @@ method from-json (Hash $json) returns ::?CLASS {
     return self.new(|%constructor);
 }
 
+#| Deflates the object back to JSON to send to Discord
 method to-json returns Hash {
     my %self := self.Capture.hash;
     my %json = %self<id nonce content type timestamp>:kv;

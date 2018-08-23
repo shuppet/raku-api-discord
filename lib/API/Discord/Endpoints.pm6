@@ -1,3 +1,4 @@
+# Not sure we're using this, and if we are, not properly.
 unit module API::Discord::Endpoints;
 class API::Discord::HTTPResource { ... }
 
