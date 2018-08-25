@@ -45,13 +45,15 @@ has Str $.session-id;
 
 has Cro::WebSocket::Client::Connection $!websocket;
 has Cro::HTTP::Client $!rest;
-has Promise $!opener;
 has Supplier $!messages;
 has Supply $!heartbeat;
 has Promise $!hb-ack;
 
 #| This Promise will be kept if the websocket closes. See L<Cro::WebSocket::Client>
 has Promise $.closer;
+
+#| This Promise is kept when the websocket connects and is set up.
+has Promise $.opener;
 
 =begin pod
 
