@@ -118,6 +118,21 @@ Channel object and put that in the expected place.
 Naturally, one cannot delete an object with no ID, just as one cannot attempt to
 read an object given anything but an ID. (Searching notwithstanding.)
 
+=head1 SHARDING
+
+Discord implements sharding but you have to set it up yourself. This allows you
+to run multiple processes to handle data.
+
+To do so, pass a value for C<shard> and a value for C<shards-max> in each
+process. You have to know how many processes you are running altogether. To add
+a shard, it is therefore necessary to restart all of your existing shards;
+otherwise, it would suddenly change which process is handling data for which
+guild.
+
+Remember that only shard 0 will receive DMs.
+
+By default, the connection will assume you have only one shard.
+
 =head1 PROPERTIES
 
 =end pod
@@ -130,6 +145,10 @@ has Int $.version = 6;
 has Str $.host = 'gateway.discord.gg';
 #| Bot token or whatever, used for auth.
 has Str $.token is required;
+#| Shard number for this connection
+has Int $.shard = 0;
+#| Number of shards you're running
+has Int $.shards-max = 1;
 
 # Docs say, increment number each time, per process
 has Int $!snowflake = 0;
@@ -168,7 +187,9 @@ submethod DESTROY {
 method connect($session-id?, $sequence?) returns Promise {
     $!conn = Connection.new(
         url => "wss://{$.host}/?v={$.version}&encoding=json",
-        token => $.token,
+        :$.token,
+        :$.shard,
+        :$.shards-max,
       |(:$session-id if $session-id),
       |(:$sequence if $sequence),
     );
