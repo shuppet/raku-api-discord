@@ -42,14 +42,6 @@ enum Type (
 
 =head1 PROPERTIES
 
-#! See L<API::Discord::RESTy> for endpoint discussion
-has %.ENDPOINTS is readonly =
-    create => '/channels/{channel-id}/messages',
-    read => '/channels/{channel-id}/messages/{message-id}',
-    update => '/channels/{channel-id}/messages/{message-id}',
-    delete => '/channels/{channel-id}/messages/{message-id}',
-;
-
 =begin pod
 
 =head2 JSON fields
