@@ -1,3 +1,5 @@
+use API::Discord::Endpoints;
+
 unit package API::Discord;
 
 =begin pod
@@ -37,27 +39,31 @@ role JSONy is export {
 
 =head1 API::Discord::RESTy[$base-url]
 
-This role defines C<send> and C<fetch> and is parameterised with a base URL. It
-is used to send or retrieve JSONy stuff.
+This role defines C<send>, C<fetch>, and C<remove>, and is parameterised with a
+base URL. It abstracts over the top of an HTTP client, so requires C<get>,
+C<post>, C<put>, and C<delete> methods.
 
-This is intended to be applied to some sort of HTTP client - it expects C<self>
-to have at least C<get> and C<post> methods that work the same as
-L<Cro::HTTP::Client> because that's what we use.
+It is intended to be applied to L<Cro::HTTP::Client>, so the aforementioned
+methods should match those.
 
 =end pod
 
 role RESTy[$base-url] is export {
     has $.base-url = $base-url;
 
-    #| Sends a JSONy object to the given endpoint.
+    #| Sends a JSONy object to the given endpoint. Updates if the object has an
+    #| ID; creates if it does not.
     method send(Str $endpoint, JSONy:D $object) {
         # TODO: does anything generate data such that we need to re-fetch after
         # creation?
         say "Send {$object.to-json} to $.base-url$endpoint";
 
-        # TODO: Shall we be smart and decide whether it's a POST or PUT based on
-        # the existence of an ID? If so, where? Discord::Object?
-        self.post: "$.base-url$endpoint", body => $object.to-json;
+        if $object.id {
+            self.put: "$.base-url$endpoint", body => $object.to-json;
+        }
+        else {
+            self.post: "$.base-url$endpoint", body => $object.to-json;
+        }
     }
 
     #| Creates a JSONy object, given a full URL and the class.
@@ -91,22 +97,31 @@ necessary that the class consuming HTTPResource also consumes JSONy.
 
 role HTTPResource is export {
     #| Upload self, given a RESTy client. Returns a Promise that resolves to
-    #| self.
+    #| self. Not all resources can be created.
     method create(RESTy $rest) {
-        # FIXME: We will have to ask self for the formatted create endpoint
-        # But maybe we should make endpoints easier to deal with first
-        my $endpoint = %.ENDPOINTS<create>.format(self);
+        my $endpoint = endpoint-for(self, 'create');
         $rest.send($endpoint, self).then({ self if $^a.result });
     }
 
-    #| Given a self with an ID in it, goes and fetches the rest of it. Currently
-    #| returns a copy of self with all the new data; too lazy to change this
-    #| right now.
+    #| Given a self with an ID in it, goes and fetches the rest of it. Returns a
+    #| Promise. This will resolve to a copy of self; this may be fixed later to
+    #| fill in self.
     method read(RESTy $rest) {
-        my $endpoint = %.ENDPOINTS<read>.format(self);
+        my $endpoint = endpoint-for(self, 'read');
         $rest.fetch($endpoint, ::?CLASS);
     }
 
-    #method update;
-    #method delete;
+    #| Updates the resource. Must have an ID already. Returns a Promise for the
+    #| operation.
+    method update(RESTy $rest) {
+        my $endpoint = endpoint-for(self, 'update');
+        $rest.send($endpoint, self).then({ self if $^a.result });
+    }
+
+    #| Deletes the resource. Must have an ID already. Not all resources can be
+    #| deleted. Returns a Promise.
+    method delete(RESTy $rest) {
+        my $endpoint = endpoint-for(self, 'delete');
+        $rest.remove($endpoint, self).then({ self if $^a.result });
+    }
 }
