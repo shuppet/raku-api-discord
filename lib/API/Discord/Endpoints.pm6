@@ -100,7 +100,7 @@ module API::Discord::Endpoints {
     ;
 
     sub endpoint-for ($r, $method, *%args) is export {
-        say my $type = $r.WHAT.^name.split('::')[*-1];
+        my $type = $r.WHAT.^name.split('::')[*-1];
 
         my $e = %ENDPOINTS{$type}{$method};
         my @required-fields = $e ~~ m:g/ '{' <( .+? )> '}' /;
@@ -121,10 +121,4 @@ module API::Discord::Endpoints {
 
         return S:g['{' ( .+? ) '}' ] = %args{$/[0]} given $e;
     }
-
-    return S:g['{' ( .+? ) '}' ] = %args{$/[0]} given $e;
-}
-
-multi method format(Str:D: API::Discord::HTTPResource $r) returns Str {
-    # get format data from object
 }
