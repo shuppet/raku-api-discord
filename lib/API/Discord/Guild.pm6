@@ -1,6 +1,6 @@
 use API::Discord::Object;
 
-unit class API::Discord::Guild does API::Discord::Object;
+unit class API::Discord::Guild does API::Discord::Object is export;
 
 =begin pod
 

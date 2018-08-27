@@ -195,21 +195,6 @@ method generate-snowflake {
     return ($time.Int +< 22) + ($worker +< 17) + ($proc +< 12) + $s;
 }
 
-# Create/update
-#| Sends an object to Discord B<TODO>
-method send (JSONy $object) returns Promise {}
-
-# Delete
-#| Deletes the object B<TODO>
-method delete (JSONy $object) returns Promise {}
-
-# Read
-#| Fetches the object by ID, given a type object B<TODO>
-method fetch (API::Discord::Object:U, $id) returns API::Discord::Object {}
-
-# get-* will fetch
-# create-* will construct
-
 #| Returns a single Message object by ID, fetching if necessary.
 method get-message ($id) returns Message {}
 
@@ -218,8 +203,13 @@ method get-messages (@message-ids) returns Array[Message] {
 }
 
 #| Returns a Message object from a JSON-shaped hash.
-method create-message (%json) returns Message {
-    API::Discord::Message.from-json(%json);
+method inflate-message (%json) returns Message {
+    Message.from-json(%(|%json, _api => self));
+}
+
+#| Returns a Message object using its constructor
+method create-message (%params) returns Message {
+    Message.new(%(|%params, api => self));
 }
 
 #| Returns a single Channel object by ID, fetching if necessary.
@@ -230,8 +220,13 @@ method get-channels (@channel-ids) returns Array[Channel] {
 }
 
 #| Returns a Channel object from a JSON-shaped hash.
-method create-channel (%json) returns API::Discord::Channel {
-    API::Discord::Channel.from-json(%json);
+method inflate-channel (%json) returns Channel {
+    Channel.from-json(%(|%json, _api => self));
+}
+
+#| Returns a Channel object using its constructor
+method create-channel (%params) returns Channel {
+    Channel.new(%(|%params, api => self));
 }
 
 #| Returns a single Guild object by ID, fetching if necessary.
@@ -242,5 +237,12 @@ method get-guilds (@guild-ids) returns Array[Guild] {
 }
 
 #| Returns a Guild object from a JSON-shaped hash.
-method create-guild (%json) returns Guild {
+method inflate-guild (%json) returns Guild {
+    Guild.from-json(%(|%json, _api => self));
 }
+
+#| Returns a Guild object using its constructor
+method create-guild (%params) returns Guild {
+    Guild.new(%(|%params, api => self));
+}
+

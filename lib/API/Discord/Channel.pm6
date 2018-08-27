@@ -1,6 +1,6 @@
 use API::Discord::Object;
 
-unit class API::Discord::Channel does API::Discord::Object;
+unit class API::Discord::Channel does API::Discord::Object is export;
 
 enum ChannelType ();
 

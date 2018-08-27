@@ -16,6 +16,13 @@ C<$.api>. Any object made through the API has the API in this attribute, This
 allows objects to ask the API for other, related objects, since it is the API
 that is connected to Discord in the first place.
 
+It should be noted that the API object should be set on Objects - that's the
+point of the class. We are using the convention that the special C<_api> key is
+used to pass the API object into an Object constructed by C<from-json>, rather
+than via the constructor.
+
+This key is not expected to be returned from C<to-json>. That would be weird.
+
 =head1 COMMON FEATURES
 
 =head2 JSON fields

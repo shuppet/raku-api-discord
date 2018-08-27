@@ -1,6 +1,6 @@
 use API::Discord::Object;
 
-unit class API::Discord::User does API::Discord::Object;
+unit class API::Discord::User does API::Discord::Object is export;
     # There's no update for others, but we consider @me an ID.
 
 =begin pod

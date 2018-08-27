@@ -1,6 +1,4 @@
 # Not sure we're using this, and if we are, not properly.
-unit module API::Discord::Endpoints;
-class API::Discord::HTTPResource { ... }
 
 class X::API::Discord::Endpoint::NotEnoughArguments is Exception {
     has @.required is required;

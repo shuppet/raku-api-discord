@@ -1,6 +1,6 @@
 use API::Discord::Object;
 
-unit class API::Discord::Message does API::Discord::Object;
+unit class API::Discord::Message does API::Discord::Object is export;
 
 =begin pod
 
@@ -116,17 +116,17 @@ submethod TWEAK {
 }
 
 #| Inflates the Message object from the JSON we get from Discord
-method from-json (Hash $json) returns ::?CLASS {
+method from-json (%json) returns ::?CLASS {
     # These keys we can lift straight out
-    my %constructor = $json<id nonce content type>:kv;
+    my %constructor = %json<id nonce content type>:kv;
 
     # These keys we sanitized for nice Perl6 people
     %constructor<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids>
-        = $json<channel_id tts mention_everyone pinned webhook_id mention_roles>;
+        = %json<channel_id tts mention_everyone pinned webhook_id mention_roles>;
 
     # These keys we can trivially inflate.
-    %constructor<timestamp> = DateTime.new($json<timestamp>);
-    %constructor<edited> = DateTime.new($json<edited_timestamp>) if $json<edited_timestamp>;
+    %constructor<timestamp> = DateTime.new(%json<timestamp>);
+    %constructor<edited> = DateTime.new(%json<edited_timestamp>) if %json<edited_timestamp>;
 
     # These keys represent another level of data structure and are related
     # objects, which should have their own from-json. However, we're not going
@@ -139,6 +139,7 @@ method from-json (Hash $json) returns ::?CLASS {
 #    %constructor<embeds> = $json<embeds>.map: self.create-embed($_);
 #    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
 
+    %constructor<api> = %json<_api>;
     return self.new(|%constructor);
 }
 
