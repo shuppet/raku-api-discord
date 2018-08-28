@@ -195,8 +195,10 @@ method generate-snowflake {
     return ($time.Int +< 22) + ($worker +< 17) + ($proc +< 12) + $s;
 }
 
-#| Returns a single Message object by ID, fetching if necessary.
-method get-message ($id) returns Message {}
+#| Returns a single Message object by channel ID and message ID, fetching if necessary.
+method get-message ($channel-id, $id) returns Message {
+    await Message.new(:$channel-id, :$id, :api(self)).fetch;
+}
 
 #| Returns an array of Message objects from their IDs. Fetches as necessary.
 method get-messages (@message-ids) returns Array[Message] {

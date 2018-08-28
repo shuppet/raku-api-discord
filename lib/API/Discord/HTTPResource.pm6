@@ -53,7 +53,7 @@ role RESTy[$base-url] is export {
 
     #| Sends a JSONy object to the given endpoint. Updates if the object has an
     #| ID; creates if it does not.
-    method send(Str $endpoint, JSONy:D $object) {
+    method send(Str $endpoint, JSONy:D $object) returns Promise {
         # TODO: does anything generate data such that we need to re-fetch after
         # creation?
         say "Send {$object.to-json} to $.base-url$endpoint";
@@ -67,10 +67,12 @@ role RESTy[$base-url] is export {
     }
 
     #| Creates a JSONy object, given a full URL and the class.
-    method fetch(Str $endpoint, JSONy:U $class) returns JSONy {
-        # FIXME: surely this is a promise?
-        my $json = self.get($endpoint);
-        $class.from-json($json);
+    method fetch(Str $endpoint, JSONy:D $obj) returns Promise {
+        self.get($endpoint).then( -> $resp-p {
+            $resp-p.result.body.then(-> $body-p {
+                $obj.from-json($body-p.result);
+            })
+        });
     }
 }
 
