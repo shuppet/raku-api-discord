@@ -16,8 +16,8 @@ This is used internally and probably of limited use otherwise.
 =head1 SYNOPSIS
 
     my $c = API::Discord::Connection.new:
-        :url(wss://...)
-        :$token
+        :url(wss://...),
+        :$token,
     ;
 
     $c.closer.then({ say ":( $^a" });
@@ -42,6 +42,9 @@ has Str $.token is required;
 has Int $.sequence;
 #| Auto-populated from received websocket messages. Used to resume.
 has Str $.session-id;
+#| Allows multiple instances to run the same bot
+has Int $.shard = 0;
+has Int $.shards-max = 1;
 
 has Cro::WebSocket::Client::Connection $!websocket;
 has Cro::HTTP::Client $!rest;
@@ -224,6 +227,8 @@ method auth {
         return;
     }
 
+    # TODO: There is a gateway bot bootstrap endpoint that tells you things like
+    # how many shards to use. We should investigate this
     $!websocket.send({
         op => OPCODE::identify,
         d => {
@@ -232,7 +237,8 @@ method auth {
                 '$os' => $*PERL,
                 '$browser' => 'API::Discord',
                 '$device' => 'API::Discord',
-            }
+            },
+            shard => [ $.shard, $.shards-max ]
         }
     });
 }

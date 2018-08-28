@@ -3,7 +3,7 @@
 use API::Discord;
 
 sub MAIN($token) {
-    my $c = API::Discord.new(:$token);
+    my $c = API::Discord.new(:$token, :shard(0), :shards-max(1));
 
     my Promise $closer = await $c.connect;
 
