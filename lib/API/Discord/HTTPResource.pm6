@@ -68,11 +68,14 @@ role RESTy[$base-url] is export {
 
     #| Creates a JSONy object, given a full URL and the class.
     method fetch(Str $endpoint, JSONy:D $obj) returns Promise {
-        self.get($endpoint).then( -> $resp-p {
-            $resp-p.result.body.then(-> $body-p {
-                $obj.from-json($body-p.result);
-            })
-        });
+        start {
+            my $b = await (await self.get($endpoint)).body;
+            $obj.from-json($b.result);
+        }
+    }
+
+    #| Deletes the thing with DELETE
+    method remove(Str $endpoint, JSONy:D $obj) returns Promise {
     }
 }
 
@@ -110,7 +113,7 @@ role HTTPResource is export {
     #| fill in self.
     method read(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'read');
-        $rest.fetch($endpoint, ::?CLASS);
+        $rest.fetch($endpoint, self).then({ self if $^a.result });
     }
 
     #| Updates the resource. Must have an ID already. Returns a Promise for the
