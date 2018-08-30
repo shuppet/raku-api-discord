@@ -232,7 +232,7 @@ method inflate-message (%json) returns Message {
 
 #| Returns a Message object using its constructor
 method create-message (%params) returns Message {
-    Message.new(%(|%params, api => self));
+    Message.new(|%params, api => self);
 }
 
 #| Returns a single Channel object by ID, fetching if necessary.
@@ -249,7 +249,7 @@ method inflate-channel (%json) returns Channel {
 
 #| Returns a Channel object using its constructor
 method create-channel (%params) returns Channel {
-    Channel.new(%(|%params, api => self));
+    Channel.new(|%params, api => self);
 }
 
 #| Returns a single Guild object by ID, fetching if necessary.
@@ -266,6 +266,6 @@ method inflate-guild (%json) returns Guild {
 
 #| Returns a Guild object using its constructor
 method create-guild (%params) returns Guild {
-    Guild.new(%(|%params, api => self));
+    Guild.new(|%params, api => self);
 }
 

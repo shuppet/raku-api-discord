@@ -2,10 +2,12 @@ use API::Discord::Object;
 
 unit class API::Discord::Channel does API::Discord::Object is export;
 
-enum ChannelType ();
+package ChannelType {
+    enum :: <guild-text dm guild-voice group-dm guild-category> ;
+}
 
 has $.id;
-has ChannelType $.type;
+has $.type;
 has $.guild-id;
 has $.position;
 has $.name;
