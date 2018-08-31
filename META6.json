@@ -7,13 +7,13 @@
         "Cro::Websocket"
     ],
     "description" : "Perl6 module for interacting with the Discord API.",
-    "licence" : "BSD 3-Clause License",
+    "licence" : "BSD-3-Clause",
     "name" : "API::Discord",
     "perl" : "6.*",
     "provides" : {
         "API::Discord" : "lib/API/Discord.pm6"
     },
     "repo-type" : "git",
-    "source-url" : "git@github.com:kawaiiforums/p6-api-discord.git",
+    "source-url" : "git@github.com:shuppet/p6-api-discord.git",
     "version" : "0.0.1"
 }
