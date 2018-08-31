@@ -144,12 +144,7 @@ method handle-opcode($json) {
             if $event eq 'READY' {
                 $!session-id = $payload<session_id>;
             }
-            else {
-                # These are probably useful to the bot
-                # We will figure out any that might not be, and handle them
-                # here in future
-                $!messages.emit($json);
-            }
+            $!messages.emit($json);
         }
         when OPCODE::invalid-session {
             note "Session invalid. Refreshing.";

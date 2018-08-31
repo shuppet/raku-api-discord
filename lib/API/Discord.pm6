@@ -157,6 +157,9 @@ has Supplier $!messages = Supplier.new;
 
 has Supplier $!events = Supplier.new;
 
+#| Our user, populated on READY event
+has $.user is rw;
+
 #| A hash of Channel objects, keyed by the Channel ID.
 has %.channels;
 
@@ -167,7 +170,8 @@ method !start-message-tap {
     $!conn.messages.tap( -> $message {
         self!handle-message($message);
         if $message<t> eq 'MESSAGE_CREATE' {
-            $!messages.emit(self.inflate-message($message<d>));
+            $!messages.emit(self.inflate-message($message<d>))
+                unless $message<d><author><id> == $.user.id;
         }
         else {
             $!events.emit($message);
@@ -181,7 +185,9 @@ method !handle-message($message) {
             %.channels{$c<id>} = self.create-channel($c);
         }
     }
-    else { $message.say }
+    elsif $message<t> eq 'READY' {
+        $.user = User.from-json($message<d><user>, _api => self);
+    }
 }
 
 submethod DESTROY {

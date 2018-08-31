@@ -27,9 +27,19 @@ has $.discriminator; # May start with 0 so we can't use int
 has $.avatar;        # The actual image
 has $.avatar-hash;   # The URL bit for the CDN
 has $.is-bot;
-has $.mfa-enabled;
-has $.verified;
+has $.is-mfa-enabled;
+has $.is-verified;
 has $.email;
+has $.locale;
 
+#| to-json might not be necessary
 method to-json {}
-method from-json ($json) {}
+method from-json ($json) {
+    my %constructor = $json<id username discriminator email locale>:kv;
+
+    %constructor<avatar-hash is-bot is-mfa-enabled is-verified>
+        = $json<avatar bot mfa_enabled verified>;
+
+    %constructor<api> = $json<_api>;
+    return self.new(|%constructor);
+}
