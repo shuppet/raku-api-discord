@@ -9,9 +9,7 @@ sub MAIN($token) {
 
     react {
         whenever $discord.messages -> $message {
-            $message.channel.send-message(
-                $message.content
-            );
+            (await $message.channel).send-message($message.content)
         }
     }
 }

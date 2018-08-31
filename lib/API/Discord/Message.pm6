@@ -104,6 +104,9 @@ purpose.
 
 =end pod
 
+method channel {
+    $.api.get-channel($.channel-id)
+}
 
 #| Inflates the Message object from the JSON we get from Discord
 method from-json (%json) returns ::?CLASS {

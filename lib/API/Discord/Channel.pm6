@@ -32,6 +32,13 @@ has @.messages;
 method fetch-messages(Int $how-many) {
 }
 
+method send-message(Str $content) {
+    $.api.create-message(
+        channel-id => $.id,
+        :$content
+    ).create;
+}
+
 method to-json {}
 
 method from-json($json) {

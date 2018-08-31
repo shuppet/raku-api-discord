@@ -221,13 +221,24 @@ method generate-snowflake {
     return ($time.Int +< 22) + ($worker +< 17) + ($proc +< 12) + $s;
 }
 
-#| Returns a single Message object by channel ID and message ID, fetching if necessary.
-method get-message ($channel-id, $id) returns Message {
-    await Message.new(:$channel-id, :$id, :api(self)).fetch;
+=begin pod
+=head3 Factories and fetchers
+
+C<inflate-> and C<create-> methods return the object directly because they do
+not involve communication. All the other methods return a Promise that resolve
+to the documented return value.
+
+=end pod
+
+#| Returns a single Message object by channel ID and message ID. This always
+#| fetches. To cache messages against their channel, use Channel.get-messages.
+method get-message ($channel-id, $id) returns Promise {
+    Message.new(:$channel-id, :$id, :api(self)).fetch($!conn.rest);
 }
 
 #| Returns an array of Message objects from their IDs. Fetches as necessary.
-method get-messages (@message-ids) returns Array[Message] {
+method get-messages ($channel-id, @message-ids) returns Promise {
+    Promise.allof( @message-ids.map: self.get-message($channel-id, *) );
 }
 
 #| Returns a Message object from a JSON-shaped hash.
@@ -241,7 +252,11 @@ method create-message (%params) returns Message {
 }
 
 #| Returns a single Channel object by ID, fetching if necessary.
-method get-channel ($id) returns Channel {}
+method get-channel ($id) returns Promise {
+    start {
+        %.channels{$id} //= await Channel.new(id => $id, _api => self).read($!conn.rest)
+    }
+}
 
 #| Returns an array of Channel objects from their IDs. Fetches as necessary.
 method get-channels (@channel-ids) returns Array[Channel] {
