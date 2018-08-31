@@ -166,7 +166,12 @@ has %.guilds;
 method !start-message-tap {
     $!conn.messages.tap( -> $message {
         self!handle-message($message);
-        $!messages.emit($message);
+        if $message<t> eq 'MESSAGE_CREATE' {
+            $!messages.emit(self.inflate-message($message<d>));
+        }
+        else {
+            $!events.emit($message);
+        }
     })
 }
 
