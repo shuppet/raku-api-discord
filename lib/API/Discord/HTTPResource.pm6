@@ -56,8 +56,6 @@ role RESTy[$base-url] is export {
     method send(Str $endpoint, JSONy:D $object) returns Promise {
         # TODO: does anything generate data such that we need to re-fetch after
         # creation?
-        say "Send {$object.to-json} to $.base-url$endpoint";
-
         if $object.id {
             self.put: "$.base-url$endpoint", body => $object.to-json;
         }

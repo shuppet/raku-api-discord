@@ -136,8 +136,6 @@ method handle-opcode($json) {
         $!sequence = $json<s>;
     }
 
-    CATCH {.say}
-
     my $payload = $json<d>;
     my $event = $json<t>; # mnemonic: rtfm
 
@@ -252,7 +250,6 @@ method messages returns Supply {
 #| Call this to close the connection, I guess. We don't really use it.
 method close {
     say "Closing connection";
-    CATCH { .say }
     $!messages.done;
     #$!heartbeat.done;
     await $!websocket.close(code => 4001);
