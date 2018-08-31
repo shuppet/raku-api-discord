@@ -36,6 +36,7 @@ method to-json {}
 
 method from-json($json) {
     my %constructor = $json<id position bitrate name topic icon>:kv;
+    %constructor<api> = $json<_api>;
     #%constructor<type> = ChannelType($json<type>.Int);
     %constructor<guild-id last-message-id user-limit owner-id application-id parent-id is-nsfw>
         = $json<guild_id last_message_id user_limit owner_id application_id parent_id nsfw>;

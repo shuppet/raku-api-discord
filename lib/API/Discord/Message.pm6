@@ -62,7 +62,7 @@ has $.mentions-everyone;
 has $.is-pinned;
 has $.webhook-id;
 has @.mentions-role-ids;
-has Type $.type;
+has $.type;
 
 has DateTime $.timestamp;
 has DateTime $.edited;
@@ -76,7 +76,6 @@ See L<API::Discord::Object> for Object properties discussion
 
 =end pod
 
-has $.channel;# will lazy { API::Discord::Channel.new($.channel-id) };
 has $.author;
 has @.mentions;
 has @.mentions-roles; # will lazy { ... }
@@ -105,15 +104,6 @@ purpose.
 
 =end pod
 
-# TODO: pull the ID properties from any defined object properties
-submethod TWEAK {
-    if $!channel.defined {
-        $!channel-id = $!channel.id
-    }
-    elsif not $!channel-id.defined {
-        die "Must provide channel or channel-id";
-    }
-}
 
 #| Inflates the Message object from the JSON we get from Discord
 method from-json (%json) returns ::?CLASS {

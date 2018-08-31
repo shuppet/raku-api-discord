@@ -257,3 +257,6 @@ method close {
     #$!heartbeat.done;
     await $!websocket.close(code => 4001);
 }
+
+#| Gimme your REST client
+method rest { $!rest }
