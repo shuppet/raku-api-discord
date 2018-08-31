@@ -33,10 +33,10 @@ method fetch-messages(Int $how-many) {
 }
 
 method send-message(Str $content) {
-    $.api.create-message(
+    $.api.create-message({
         channel-id => $.id,
         :$content
-    ).create;
+    }).create($.api.rest);
 }
 
 method to-json {}

@@ -145,8 +145,10 @@ method to-json returns Hash {
     %json<channel_id tts mention_everyone pinned webhook_id mention_roles>
         = %self<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids>;
 
-    for <author mentions attachments embeds reactions> -> $prop {
-        %self{$prop} andthen %json{$prop} = .to-json
+    $.author andthen %json<author> = .to-json;
+
+    for <mentions attachments embeds reactions> -> $prop {
+        %self{$prop} andthen %json{$prop} = [map *.to-json, $_.values]
     }
 
     return %json;

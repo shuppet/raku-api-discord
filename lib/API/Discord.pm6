@@ -221,6 +221,8 @@ method generate-snowflake {
     return ($time.Int +< 22) + ($worker +< 17) + ($proc +< 12) + $s;
 }
 
+method rest { $!conn.rest }
+
 =begin pod
 =head3 Factories and fetchers
 
