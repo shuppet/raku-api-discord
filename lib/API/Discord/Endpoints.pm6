@@ -95,6 +95,12 @@ module API::Discord::Endpoints {
             update => '/channels/{channel-id}/messages/{id}',
             delete => '/channels/{channel-id}/messages/{id}',
         },
+        Reaction =>
+        {
+            create => '/channels/{message.channel-id}/messages/{message.id}/reactions/{emoji}/{user}',
+            read => '/channels/{message.channel-id}/messages/{message.id}/reactions/{emoji}',
+            delete => '/channels/{message.channel-id}/messages/{message.id}/reactions/{emoji}/{user}',
+        }
     ;
 
     sub endpoint-for ($r, $method, *%args) is export {
@@ -106,7 +112,9 @@ module API::Discord::Endpoints {
         for @required-fields -> $f {
             next if %args{$f};
 
-            my $val = $r."$f"();
+            my @f = $f.split('.');
+
+            my $val = reduce { $^a."$^b"() }, $r, |@f;
             %args{$f} = $val if $val;
         }
 

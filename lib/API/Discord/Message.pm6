@@ -1,4 +1,5 @@
 use API::Discord::Object;
+use URI::Encode;
 
 unit class API::Discord::Message does API::Discord::Object is export;
 
@@ -33,7 +34,25 @@ class Activity {
     has $.party-id;
 }
 
-class Reaction {
+class Reaction does API::Discord::Object {
+    # This class is special because a) only Message uses it and b) it doesn't
+    # use the default HTTP logic when sending.
+    has $.emoji;
+    has $.count;
+    has $.i-reacted;
+    has $.user;
+
+    has $.message;
+
+    method self-send(Str $endpoint, $resty) returns Promise {
+        $resty.put: "$endpoint", body => {};
+    }
+    method from-json($json) {
+        # We added message because only the Message class calls this
+        self.new(|$json);
+    }
+
+    method to-json { {} }
 }
 
 enum Type (
@@ -104,8 +123,14 @@ purpose.
 
 =end pod
 
+#| Returns a Promise that resolves to the channel.
 method channel {
     $.api.get-channel($.channel-id)
+}
+
+method add-reaction(Str $e) {
+    my $emoji = uri_encode_component($e);
+    Reaction.new(:$emoji, :user('@me'), :message(self)).create($.api.rest);
 }
 
 #| Inflates the Message object from the JSON we get from Discord
