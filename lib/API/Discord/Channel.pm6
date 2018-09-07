@@ -36,7 +36,7 @@ method send-message(Str $content) {
     $.api.create-message({
         channel-id => $.id,
         :$content
-    }).create($.api.rest);
+    }).create;
 }
 
 method to-json {}
