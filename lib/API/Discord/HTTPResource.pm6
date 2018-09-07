@@ -62,10 +62,10 @@ role RESTy[$base-url] is export {
         # TODO: does anything generate data such that we need to re-fetch after
         # creation?
         if $object.can('id') and $object.id {
-            self.put: "$full-endpoint", body => $object.to-json;
+            self.put: $full-endpoint, body => $object.to-json;
         }
         else {
-            self.post: "$full-endpoint", body => $object.to-json;
+            self.post: $full-endpoint, body => $object.to-json;
         }
     }
 
