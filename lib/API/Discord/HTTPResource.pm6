@@ -54,13 +54,18 @@ role RESTy[$base-url] is export {
     #| Sends a JSONy object to the given endpoint. Updates if the object has an
     #| ID; creates if it does not.
     method send(Str $endpoint, JSONy:D $object) returns Promise {
+        my $full-endpoint = "$.base-url$endpoint";
+
+        if $object.can('self-send') {
+            return $object.self-send($full-endpoint, self)
+        }
         # TODO: does anything generate data such that we need to re-fetch after
         # creation?
         if $object.can('id') and $object.id {
-            self.put: "$.base-url$endpoint", body => $object.to-json;
+            self.put: "$full-endpoint", body => $object.to-json;
         }
         else {
-            self.post: "$.base-url$endpoint", body => $object.to-json;
+            self.post: "$full-endpoint", body => $object.to-json;
         }
     }
 

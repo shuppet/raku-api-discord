@@ -35,6 +35,8 @@ class Activity {
 }
 
 class Reaction does API::Discord::Object {
+    # This class is special because a) only Message uses it and b) it doesn't
+    # use the default HTTP logic when sending.
     has $.emoji;
     has $.count;
     has $.i-reacted;
@@ -42,13 +44,14 @@ class Reaction does API::Discord::Object {
 
     has $.message;
 
+    method self-send(Str $endpoint, $resty) returns Promise {
+        $resty.put: "$endpoint", body => {};
+    }
     method from-json($json) {
         # We added message because only the Message class calls this
         self.new(|$json);
     }
 
-    # This is special because the endpoint has all the data in the URL so we
-    # don't send any.
     method to-json { {} }
 }
 
