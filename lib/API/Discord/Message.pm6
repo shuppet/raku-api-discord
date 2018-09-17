@@ -128,9 +128,9 @@ method channel {
     $.api.get-channel($.channel-id)
 }
 
-method add-reaction(Str $e) {
-    my $emoji = uri_encode_component($e);
-    Reaction.new(:$emoji, :user('@me'), :message(self)).create($.api.rest);
+method add-reaction(Str $e is copy) {
+    $e = uri_encode_component($e) unless $e ~~ /\:/;
+    Reaction.new(:emoji($e), :user('@me'), :message(self)).create($.api.rest);
 }
 
 #| Inflates the Message object from the JSON we get from Discord
