@@ -11,6 +11,12 @@
 * Embeds
 * Edited messages
   * Update message in memory
+* Supplies everywhere!!
+  * Add suppy to Channel and Guild for messages
+  * And for events
+  * Maybe:
+    * Add edit supply to Message
+    * Add reaction supply to Message
 
 # Refactor targets
 
