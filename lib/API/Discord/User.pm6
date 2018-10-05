@@ -1,4 +1,5 @@
 use API::Discord::Object;
+use API::Discord::Endpoints;
 
 unit class API::Discord::User does API::Discord::Object is export;
     # There's no update for others, but we consider @me an ID.
@@ -18,8 +19,8 @@ Users cannot be created or deleted.
 
 =end pod
 
-has @.dms;
-has @.guilds;
+has @!dms;
+has @!guilds;
 
 has $.id;
 has $.username;
@@ -31,6 +32,17 @@ has $.is-mfa-enabled;
 has $.is-verified;
 has $.email;
 has $.locale;
+
+method guilds returns Promise {
+    start {
+        unless @!guilds {
+            my $e = endpoint-for( self, 'get-guilds' ) ;
+            my $p = await $.api.rest.get($e);
+            say await $p.body
+        }
+        @!guilds
+    }
+}
 
 #| to-json might not be necessary
 method to-json {}
