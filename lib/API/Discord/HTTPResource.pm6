@@ -51,6 +51,10 @@ methods should match those.
 role RESTy[$base-url] is export {
     has $.base-url = $base-url;
 
+    method get ($uri) {
+        callwith("$.base-url$uri");
+    }
+
     #| Sends a JSONy object to the given endpoint. Updates if the object has an
     #| ID; creates if it does not.
     method send(Str $endpoint, JSONy:D $object) returns Promise {
