@@ -186,7 +186,7 @@ method !handle-message($message) {
         }
     }
     elsif $message<t> eq 'READY' {
-        $.user = User.from-json($message<d><user>, _api => self);
+        $.user = User.from-json(%(|$message<d><user>, id => '@me', _api => self));
     }
 }
 
