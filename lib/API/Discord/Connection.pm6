@@ -78,7 +78,6 @@ submethod TWEAK {
             Authorization => 'Bot ' ~ $!token,
             User-agent => "DiscordBot (https://github.io/shuppet/p6-api-discord, 0.0.1)",
             Accept => 'application/json, */*',
-            Accept-encoding => 'gzip, deflate',
             Connection => 'keep-alive',
 
         ]
