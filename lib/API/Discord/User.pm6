@@ -38,7 +38,7 @@ method guilds returns Promise {
         unless @!guilds {
             my $e = endpoint-for( self, 'get-guilds' ) ;
             my $p = await $.api.rest.get($e);
-            say await $p.body
+            @!guilds = await $p.body
         }
         @!guilds
     }
