@@ -50,7 +50,7 @@ method guilds($force?) returns Promise {
             my @guilds;
             my $e = endpoint-for( self, 'get-guilds' ) ;
             my $p = await $.api.rest.get($e);
-            @guilds = (await $p.body).map: $!api.inflate-guild(*);
+            @guilds = (await $p.body).map( { $!api.inflate-guild($_) } );
             @guilds;
         }
     }
