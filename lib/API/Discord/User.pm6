@@ -2,7 +2,6 @@ use API::Discord::Object;
 use API::Discord::Endpoints;
 
 unit class API::Discord::User does API::Discord::Object is export;
-    # There's no update for others, but we consider @me an ID.
 
 =begin pod
 
@@ -17,6 +16,18 @@ L<https://discordapp.com/developers/docs/resources/user>.
 
 Users cannot be created or deleted.
 
+See also L<API::Discord::Object>.
+
+=head1 PROMISES
+
+=head2 guilds
+
+Resolves to a list of L<API::Discord::Guild> objects
+
+=head2 dms
+
+Resolves to a list of L<API::Discord::Channel> objects (direct messages)
+
 =end pod
 
 has Promise $!dms-promise;
@@ -24,7 +35,7 @@ has Promise $!guilds-promise;
 
 has $.id;
 has $.username;
-has $.discriminator; # May start with 0 so we can't use int
+has $.discriminator;
 has $.avatar;        # The actual image
 has $.avatar-hash;   # The URL bit for the CDN
 has $.is-bot;
