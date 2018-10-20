@@ -50,7 +50,7 @@ method guilds($force?) returns Promise {
             my @guilds;
             my $e = endpoint-for( self, 'get-guilds' ) ;
             my $p = await $.api.rest.get($e);
-            @guilds = await $p.body
+            @guilds = (await $p.body).map: $!api.inflate-guild(*);
             @guilds;
         }
     }
@@ -64,7 +64,7 @@ method dms($force?) returns Promise {
             my @dms;
             my $e = endpoint-for( self, 'get-dms' ) ;
             my $p = await $.api.rest.get($e);
-            @dms = await $p.body
+            @dms = (await $p.body).map: $!api.inflate-channel(*);
             @dms;
         }
     }
