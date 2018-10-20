@@ -19,8 +19,8 @@ Users cannot be created or deleted.
 
 =end pod
 
-has @!dms;
-has @!guilds;
+has Promise $!dms-promise;
+has Promise $!guilds-promise;
 
 has $.id;
 has $.username;
@@ -33,15 +33,32 @@ has $.is-verified;
 has $.email;
 has $.locale;
 
-method guilds returns Promise {
-    start {
-        unless @!guilds {
+method guilds($force?) returns Promise {
+    if $force or not $!guilds-promise {
+        $!guilds-promise = start {
+            my @guilds;
             my $e = endpoint-for( self, 'get-guilds' ) ;
             my $p = await $.api.rest.get($e);
-            @!guilds = await $p.body
+            @guilds = await $p.body
+            @guilds;
         }
-        @!guilds
     }
+
+    $!guilds-promise
+}
+
+method dms($force?) returns Promise {
+    if $force or not $!dms-promise {
+        $!dms-promise = start {
+            my @dms;
+            my $e = endpoint-for( self, 'get-dms' ) ;
+            my $p = await $.api.rest.get($e);
+            @dms = await $p.body
+            @dms;
+        }
+    }
+
+    $!guilds-promise
 }
 
 #| to-json might not be necessary
