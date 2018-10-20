@@ -94,6 +94,19 @@ has @.channels;
 has @.presences;
 
 #! See L<Api::Discord::JSONy>
-method to-json {}
+method to-json {
+    my %self = self.Capture.hash;
+    my %json = %self<id name icon splash>:kv;
+
+    %json<owner> = %self<is-owner>;
+
+    return %json;
+}
+
 #! See L<Api::Discord::JSONy>
-method from-json ($json) {}
+method from-json (%json) {
+    my %constructor = %json<id name icon splash>:kv;
+    %constructor<is-owner> = %json<owner>;
+
+    return self.new(|%constructor);
+}
