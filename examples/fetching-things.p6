@@ -18,7 +18,7 @@ sub MAIN($token) {
         # avoid race conditions.
         whenever $discord.events -> $event {
             if $event<t> eq 'READY' {
-                say "Guilds: " ~ (await $discord.user.guilds);
+                say "Guilds: " ~ (await $discord.user.guilds).map: {$_.to-json};
             }
         }
     }
