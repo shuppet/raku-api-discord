@@ -58,6 +58,15 @@ considered an Object property, because we can inflate an Embed object from JSON,
 and deflate it to JSON, automatically. The point is that to the user, it is an
 object, not a simple type.
 
+=head2 Promises
+
+Each object may have properties that are not part of the Discord JSON object,
+but are fetched separately: often, these are other objects related to this one.
+
+These properties are actually Promises that resolve to the set of related
+objects, as opposed to all the other ones, which are set at construction time
+because we already have them.
+
 =head1 PROPERTIES
 
 =end pod
