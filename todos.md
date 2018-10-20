@@ -17,6 +17,9 @@
   * Maybe:
     * Add edit supply to Message
     * Add reaction supply to Message
+* Partial objects
+  * Objects that know they are only partially fetched and will get the rest of
+    themselves when requested
 
 # Refactor targets
 
