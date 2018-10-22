@@ -57,4 +57,3 @@ sub MAIN($token) {
 - [Jonathan 'jnthn' Worthington](https://github.com/jnthn) - answered many of our inane questions in the #perl6 Freenode IRC
 - [Timo 'timotimo' Paulssen](https://github.com/timo) - also answered a great deal of technical questions when jnthn wasn't fast enough :P
 - [Tomislav 'Novica' Novački](https://www.instagram.com/novackinet) - provided our lovely graphics for `API::Discord` and other projects
-- [Yumi 'Yumi' Hirasawa](http://peachyalice.tumblr.com) - inspired us to write `API::Discord` and `Bot::Discord::Yxmi` in the first place
