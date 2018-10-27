@@ -16,3 +16,5 @@ throws-like {
     my $m = Message.new(:channel-id(1234));
     is endpoint-for($m, 'read', id => 123), '/channels/1234/messages/123', "Got correct URL";
 }
+
+done-testing;
