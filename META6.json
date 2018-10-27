@@ -12,7 +12,19 @@
     "name" : "API::Discord",
     "perl" : "6.*",
     "provides" : {
-        "API::Discord" : "lib/API/Discord.pm6"
+        "API::Discord" : "lib/API/Discord.pm6",
+        "API::Discord::Channel" : "lib/API/Discord/Channel.pm6",
+        "API::Discord::Connection" : "lib/API/Discord/Connection.pm6",
+        "API::Discord::Endpoints" : "lib/API/Discord/Endpoints.pm6",
+        "API::Discord::Guild": "lib/API/Discord/Guild.pm6",
+        "API::Discord::HTTPResource": "lib/API/Discord/HTTPResource.pm6",
+        "API::Discord::JSONy": "lib/API/Discord/HTTPResource.pm6",
+        "API::Discord::Message": "lib/API/Discord/Message.pm6",
+        "API::Discord::Object": "lib/API/Discord/Object.pm6",
+        "API::Discord::RESTy": "lib/API/Discord/HTTPResource.pm6",
+        "API::Discord::Types": "lib/API/Discord/Types.pm6",
+        "API::Discord::User": "lib/API/Discord/User.pm6",
+        "X::API::Discord::Endpoint::NotEnoughArguments": "lib/API/Discord/Endpoints.pm6"
     },
     "repo-type" : "git",
     "source-url" : "git@github.com:shuppet/p6-api-discord.git",
