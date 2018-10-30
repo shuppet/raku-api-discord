@@ -11,8 +11,7 @@ sub MAIN($token) {
         whenever $discord.messages -> $message {
             # These return Promises that we're ignoring.
             # Real code should await these and check for errors
-            $message.add-reaction('⭐');
-            $message.add-reaction('awoo:486257857277460490')
+            await $message.add-reaction('⭐');
         }
     }
 }

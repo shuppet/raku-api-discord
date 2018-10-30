@@ -33,6 +33,9 @@ Resolves to a list of L<API::Discord::Channel> objects (direct messages)
 has Promise $!dms-promise;
 has Promise $!guilds-promise;
 
+#| Use real-id if you want to compare the user's numeric ID. This lets us put
+#| '@me' in id itself, for endpoints
+has $.real-id;
 has $.id;
 has $.username;
 has $.discriminator;
@@ -43,6 +46,10 @@ has $.is-mfa-enabled;
 has $.is-verified;
 has $.email;
 has $.locale;
+
+submethod TWEAK() {
+    $!real-id //= $!id;
+}
 
 method guilds($force?) returns Promise {
     if $force or not $!guilds-promise {
@@ -75,7 +82,7 @@ method dms($force?) returns Promise {
 #| to-json might not be necessary
 method to-json {}
 method from-json ($json) {
-    my %constructor = $json<id username discriminator email locale>:kv;
+    my %constructor = $json<id username discriminator email locale real-id>:kv;
 
     %constructor<avatar-hash is-bot is-mfa-enabled is-verified>
         = $json<avatar bot mfa_enabled verified>;
