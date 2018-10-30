@@ -171,7 +171,7 @@ method !start-message-tap {
         self!handle-message($message);
         if $message<t> eq 'MESSAGE_CREATE' {
             $!messages.emit(self.inflate-message($message<d>))
-                unless $message<d><author><id> == $.user.id;
+                unless $message<d><author><id> == $.user.real-id;
         }
         else {
             $!events.emit($message);
@@ -186,7 +186,11 @@ method !handle-message($message) {
         }
     }
     elsif $message<t> eq 'READY' {
-        $.user = User.from-json(%(|$message<d><user>, id => '@me', _api => self));
+        $.user = self.inflate-user(%(
+            |$message<d><user>,
+            id => '@me',
+            real-id => $message<d><user><id>
+        ));
     }
 }
 
@@ -295,5 +299,15 @@ method inflate-guild (%json) returns Guild {
 #| Returns a Guild object using its constructor
 method create-guild (%params) returns Guild {
     Guild.new(|%params, api => self);
+}
+
+#| Returns a User object from a JSON-shaped hash.
+method inflate-user (%json) returns User {
+    User.from-json(%(|%json, _api => self));
+}
+
+#| Returns a User object using its constructor
+method create-user (%params) returns User {
+    User.new(|%params, api => self);
 }
 
