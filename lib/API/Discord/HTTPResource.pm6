@@ -51,8 +51,11 @@ methods should match those.
 role RESTy[$base-url] is export {
     has $.base-url = $base-url;
 
-    method get ($uri) {
-        callwith("$.base-url$uri");
+    multi method get ($uri, %args) {
+        callwith("$.base-url$uri", %args);
+    }
+    multi method get ($uri, *%args) {
+        callwith("$.base-url$uri", %args);
     }
 
     #| Sends a JSONy object to the given endpoint. Updates if the object has an
