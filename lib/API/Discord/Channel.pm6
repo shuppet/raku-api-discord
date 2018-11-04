@@ -1,4 +1,5 @@
 use API::Discord::Object;
+use API::Discord::Endpoints;
 
 unit class API::Discord::Channel does API::Discord::Object is export;
 
@@ -65,8 +66,18 @@ has @.recipients;
 has @.permission-overwrites;
 has @.messages;
 
+has Promise $!fetch-message-promise;
+method fetch-messages(Int $how-many) returns Promise {
+    $!fetch-message-promise //= start {
+        $!fetch-message-promise = Promise;
+        my $e = endpoint-for(self, 'get-messages');
+        my $p = await $.api.rest.get($e);
 
-method fetch-messages(Int $how-many) {
+        @.messages.push: (await $p.body).map: { $.api.inflate-message($_) };
+        @.messages;
+    };
+
+    $!fetch-message-promise;
 }
 
 method send-message(Str $content) {
