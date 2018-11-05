@@ -35,7 +35,7 @@ should refer to it directly rather than saving a copy if you want the most
 recent facts.
 
 No historical messages are getch at the point of construction; the array will
-merely track messages as they arrive. use L<fetch-messages> to append historical
+merely track messages as they arrive. Use L<fetch-messages> to append historical
 messages to the array.
 
 =end pod
@@ -67,19 +67,30 @@ has @.permission-overwrites;
 has @.messages;
 
 has Promise $!fetch-message-promise;
+
+submethod TWEAK() {
+    # Seed the promise for fetch-messages to chain from
+    $!fetch-message-promise = start{};
+}
+
+#| Fetch N messages and returns a Promise that resolves to the complete new list
+#| of messages. If something is already fetching messages, your call will await
+#| those before making its own call on top of them.
 method fetch-messages(Int $how-many) returns Promise {
-    $!fetch-message-promise //= start {
-        $!fetch-message-promise = Promise;
-        my $e = endpoint-for(self, 'get-messages');
+    $!fetch-message-promise = $!fetch-message-promise.then: {
+        my $get = 'get-messages';
+        if @.messages {
+            $get ~= '?after=' ~ @.messages[*-1].id;
+        }
+        my $e = endpoint-for(self, $get);
         my $p = await $.api.rest.get($e);
 
         @.messages.push: (await $p.body).map: { $.api.inflate-message($_) };
         @.messages;
     };
-
-    $!fetch-message-promise;
 }
 
+#| Sends a message to the channel and returns the POST promise.
 method send-message(Str $content) {
     $.api.create-message({
         channel-id => $.id,
