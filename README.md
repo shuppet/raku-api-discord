@@ -22,7 +22,7 @@ cd p6-api-discord/ && zef install ${PWD}
 
 ## Usage
 
-Full documentation can be found by reading the [wiki](https://github.com/kawaiiforums/p6-api-discord/wiki) attached to this repository, or by reading the pod directly from the module source.
+Full documentation can be found by reading the [wiki](https://github.com/shuppet/p6-api-discord/wiki) attached to this repository, or by reading the pod directly from the module source.
 
 ```
 p6doc API::Discord
