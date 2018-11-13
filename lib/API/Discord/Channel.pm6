@@ -67,6 +67,7 @@ has @.permission-overwrites;
 has @.messages;
 
 has Promise $!fetch-message-promise;
+has Promise $!fetch-pins-promise;
 
 submethod TWEAK() {
     # Seed the promise for fetch-messages to chain from
@@ -88,6 +89,21 @@ method fetch-messages(Int $how-many) returns Promise {
         @.messages.push: (await $p.body).map: { $.api.inflate-message($_) };
         @.messages;
     };
+}
+
+#| Returns all pinned messages at once, in a Promise
+method pinned-messages($force?) returns Promise {
+    if $force or not $!fetch-pins-promise {
+        $!fetch-pins-promise = start {
+            my @pins;
+            my $e = endpoint-for( self, 'get-guilds' ) ;
+            my $p = await $.api.rest.get($e);
+            @pins = (await $p.body).map( { $!api.inflate-message($_) } );
+            @pins;
+        }
+    }
+
+    $!fetch-pins-promise;
 }
 
 #| Sends a message to the channel and returns the POST promise.
