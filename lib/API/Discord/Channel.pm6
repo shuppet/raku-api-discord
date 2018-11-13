@@ -114,6 +114,13 @@ method send-message(Str $content) {
     }).create;
 }
 
+#| Shows the "user is typing..." message to everyone in the channel. Disappears
+#| after ~10 seconds or when a message is sent.
+method trigger-typing {
+    # TODO: Handle error
+    $.api.rest.post(endpoint-for(self, 'trigger-typing'));
+}
+
 method to-json {}
 
 method from-json($json) {
