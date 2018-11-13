@@ -79,6 +79,26 @@ method dms($force?) returns Promise {
     $!guilds-promise
 }
 
+=begin pod
+
+=head1 METHODS
+
+=head2 create-dm
+
+Creates a DM with the provided C<$user>. This is an L<API::Discord::Channel>
+object; the method returns a Promise that resolves to this.
+
+=end pod
+
+method create-dm($user) returns Promise {
+    start {
+        my $body = { recipient_id => $user.id };
+        my $ret = await $.api.post: endpoint-for(self, 'create-dm'), body => $body;
+        my $dm = await $ret.body;
+        $.api.inflate-channel($dm);
+    }
+}
+
 #| to-json might not be necessary
 method to-json {}
 method from-json ($json) {
