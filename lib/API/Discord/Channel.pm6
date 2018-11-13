@@ -77,6 +77,7 @@ submethod TWEAK() {
 #| Fetch N messages and returns a Promise that resolves to the complete new list
 #| of messages. If something is already fetching messages, your call will await
 #| those before making its own call on top of them.
+#| TODO: maybe only fetch enough extra messages after that one?
 method fetch-messages(Int $how-many) returns Promise {
     $!fetch-message-promise = $!fetch-message-promise.then: {
         my $get = 'get-messages';
