@@ -51,7 +51,7 @@ sub MAIN($token) {
     }
 }
 ```
-
+More examples can be found within the [`examples/`](https://github.com/shuppet/p6-api-discord/tree/master/examples) directory of this repository.
 ## Acknowledgements
 
 - [Jonathan 'jnthn' Worthington](https://github.com/jnthn) - answered many of our inane questions in the #perl6 Freenode IRC
