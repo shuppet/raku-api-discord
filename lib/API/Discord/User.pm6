@@ -99,7 +99,7 @@ method create-dm($user) returns Promise {
     }
 }
 
-#| to-json might not be necessary
+# to-json might not be necessary
 method to-json {}
 method from-json ($json) {
     my %constructor = $json<id username discriminator email locale real-id>:kv;
