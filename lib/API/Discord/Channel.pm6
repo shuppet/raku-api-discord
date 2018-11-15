@@ -71,7 +71,7 @@ has Promise $!fetch-pins-promise;
 
 submethod TWEAK() {
     # Seed the promise for fetch-messages to chain from
-    $!fetch-message-promise = start{};
+    $!fetch-message-promise = start {};
 }
 
 #| Fetch N messages and returns a Promise that resolves to the complete new list
