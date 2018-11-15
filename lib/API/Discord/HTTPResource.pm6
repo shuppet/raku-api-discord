@@ -55,7 +55,7 @@ role RESTy[$base-url] is export {
         callwith("$.base-url$uri", %args);
     }
     multi method get ($uri, *%args) {
-        callwith("$.base-url$uri", %args);
+        callwith("$.base-url$uri", |%args);
     }
 
     #| Sends a JSONy object to the given endpoint. Updates if the object has an
