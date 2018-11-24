@@ -176,7 +176,7 @@ method handle-opcode($json) {
 method setup-heartbeat($interval) {
     $!heartbeat = Supply.interval($interval);
     $!heartbeat.tap: {
-        note "♥";
+        note "« ♥";
         $!websocket.send({
             d => $!sequence,
             op => OPCODE::heartbeat,
@@ -200,7 +200,7 @@ method setup-heartbeat($interval) {
 #| Prevents the panic stations we get when we don't hear back from the
 #| heartbeat.
 method ack-heartbeat-ack {
-    note "Still with us ♥";
+    note "» ♥";
     $!hb-ack.keep;
 }
 
