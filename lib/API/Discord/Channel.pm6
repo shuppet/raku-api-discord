@@ -122,6 +122,22 @@ method trigger-typing {
     $.api.rest.post(endpoint-for(self, 'trigger-typing'));
 }
 
+#| Deletes these messages. Max 100, minimum 2. If any message does not belong to
+#| this channel, the whole operation fails. Returns a promise that resolves to
+#| the new message array.
+method bulk-delete(@messages) {
+    start {
+        # TODO: I don't think we're handling a failure from this correctly
+        await $.api.rest.post(endpoint-for(self, 'bulk-delete'), messages => @messages.map: *.id);
+
+        my %antipairs{Any} = @!messages.antipairs;
+        my @removed-idxs = %antipairs{@messages};
+        my \to-remove = set(@removed-idxs);
+        my @keep = @!messages.keys.grep(none(to-remove));
+        @!messages = @!messages[@keep];
+    }
+}
+
 method to-json {}
 
 method from-json($json) {

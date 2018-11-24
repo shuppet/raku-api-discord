@@ -30,3 +30,5 @@
 # Refactor targets
 
 * Abstract the meaning of the JSON response from websocket into meaningful class(es)
+* Potential race condition in messages: all Channel.messages should be via a
+  Promise so we can "lock" the array while changes are made.
