@@ -97,7 +97,7 @@ method pinned-messages($force?) returns Promise {
     if $force or not $!fetch-pins-promise {
         $!fetch-pins-promise = start {
             my @pins;
-            my $e = endpoint-for( self, 'get-guilds' ) ;
+            my $e = endpoint-for( self, 'pinned-messages' ) ;
             my $p = await $.api.rest.get($e);
             @pins = (await $p.body).map( { $!api.inflate-message($_) } );
             @pins;
@@ -113,6 +113,14 @@ method send-message(Str $content) {
         channel-id => $.id,
         :$content
     }).create;
+}
+
+method pin($message) returns Promise {
+    $.api.rest.post(endpoint-for('pinned-message', message => $message));
+}
+
+method unpin($message) returns Promise {
+    $.api.rest.delete(endpoint-for('pinned-message', message => $message));
 }
 
 #| Shows the "user is typing..." message to everyone in the channel. Disappears

@@ -133,6 +133,13 @@ method add-reaction(Str $e is copy) {
     Reaction.new(:emoji($e), :user('@me'), :message(self)).create($.api.rest);
 }
 
+#| Pins this message to its channel.
+method pin returns Promise {
+    start {
+        (await self.channel).pin(self)
+    }
+}
+
 #| Inflates the Message object from the JSON we get from Discord
 method from-json (%json) returns ::?CLASS {
     # These keys we can lift straight out
