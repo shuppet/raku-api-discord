@@ -128,6 +128,13 @@ method channel {
     $.api.get-channel($.channel-id)
 }
 
+=begin pod
+=head2 add-reaction
+Provide a string containg the emoji to use. This is either a unicode emoji, or a
+fully-specified guild-specific emoji of the form C<$name:$id>, e.g.
+C<flask:502112742656835604>
+=end pod
+
 method add-reaction(Str $e is copy) {
     $e = uri_encode_component($e) unless $e ~~ /\:/;
     Reaction.new(:emoji($e), :user('@me'), :message(self)).create($.api.rest);
