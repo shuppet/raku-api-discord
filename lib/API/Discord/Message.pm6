@@ -126,8 +126,7 @@ Does the API user appear in the mentions array?
 =end pod
 
 method addressed returns Bool {
-    @.mentions.say;
-    @.mentions.first({ $.api.user.real-id == .real-id }).Bool
+    @.mentions.first({ $.api.user.real-id == $_.real-id }).Bool
 }
 
 #| Returns a Promise that resolves to the channel.
@@ -156,6 +155,7 @@ method pin returns Promise {
 
 #| Inflates the Message object from the JSON we get from Discord
 method from-json (%json) returns ::?CLASS {
+    my $api = %json<_api>;
     # These keys we can lift straight out
     my %constructor = %json<id nonce content type>:kv;
 
@@ -173,13 +173,13 @@ method from-json (%json) returns ::?CLASS {
     # already have the data for.
 # TODO: Decide where these factories should go, and then use them.
 #    %constructor<author> = $.api.User.from-json($json<author>);
-    %constructor<mentions> = %json<mentions>.map: {$.api.inflate-user($_)};
+    %constructor<mentions> = %json<mentions>.map( {$api.inflate-user($_)} ).Array;
 #    %constructor<attachments> = $json<attachments>.map: self.create-attachment($_);
 #    %constructor<embeds> = $json<embeds>.map: self.create-embed($_);
 #    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
 
-    %constructor<api> = %json<_api>;
-    return self.new(|%constructor);
+    %constructor<api> = $api;
+    return self.new(|%constructor.Map);
 }
 
 #| Deflates the object back to JSON to send to Discord
