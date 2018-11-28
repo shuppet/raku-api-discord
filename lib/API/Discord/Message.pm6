@@ -121,7 +121,14 @@ will be set, even if you passed that in too.
 This ensures that they will be consistent, at least until you break it on
 purpose.
 
+=head2 addressed
+Does the API user appear in the mentions array?
 =end pod
+
+method addressed returns Bool {
+    @.mentions.say;
+    @.mentions.first({ $.api.user.real-id == .real-id }).Bool
+}
 
 #| Returns a Promise that resolves to the channel.
 method channel {
