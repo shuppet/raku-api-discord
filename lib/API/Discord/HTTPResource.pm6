@@ -76,6 +76,12 @@ role RESTy[$base-url] is export {
         }
     }
 
+    #| Sends a PUT but no data required. Useful to avoid creating whole classes
+    #| just so they can self-send
+    method touch(Str $endpoint) returns Promise {
+        self.put: "$.base-url$endpoint", body => {};
+    }
+
     #| Creates a JSONy object, given a full URL and the class.
     method fetch(Str $endpoint, JSONy:D $obj) returns Promise {
         start {
