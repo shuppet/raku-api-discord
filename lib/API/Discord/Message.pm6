@@ -129,9 +129,10 @@ method addressed returns Bool {
     @.mentions.first({ $.api.user.real-id == $_.real-id }).Bool
 }
 
-#| Returns a Promise that resolves to the channel.
-method channel {
-    $.api.get-channel($.channel-id)
+#| Returns a Promise that resolves to the channel, or awaits the channel for you
+#| if you use C<:now>.
+method channel(:$now) {
+    return $now ?? (await $_) !! $_ given $.api.get-channel($.channel-id);
 }
 
 =begin pod
@@ -148,9 +149,7 @@ method add-reaction(Str $e is copy) {
 
 #| Pins this message to its channel.
 method pin returns Promise {
-    start {
-        (await self.channel).pin(self)
-    }
+    self.channel(:now).pin(self)
 }
 
 #| Inflates the Message object from the JSON we get from Discord
