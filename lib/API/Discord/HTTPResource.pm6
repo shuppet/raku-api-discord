@@ -91,9 +91,8 @@ role RESTy[$base-url] is export {
     }
 
     #| Deletes the thing with DELETE
-    method remove(Str $endpoint, JSONy:D $obj) returns Promise {
-        my $full-endpoint = "$.base-url$endpoint";
-        self.delete: $full-endpoint
+    method remove(Str $endpoint) returns Promise {
+        self.delete: "$.base-url$endpoint";
     }
 }
 
