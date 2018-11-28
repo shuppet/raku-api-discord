@@ -173,7 +173,7 @@ method from-json (%json) returns ::?CLASS {
     # already have the data for.
 # TODO: Decide where these factories should go, and then use them.
 #    %constructor<author> = $.api.User.from-json($json<author>);
-#    %constructor<mentions> = $json<mentions>.map: $.api.create-user($_);
+    %constructor<mentions> = %json<mentions>.map: {$.api.inflate-user($_)};
 #    %constructor<attachments> = $json<attachments>.map: self.create-attachment($_);
 #    %constructor<embeds> = $json<embeds>.map: self.create-embed($_);
 #    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
