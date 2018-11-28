@@ -15,6 +15,9 @@ sub MAIN($token) {
                 $c ~~ s/^ '<@' $id '>' \s+//;
 
                 given $c {
+                    when 'pin' {
+                        await $message.pin;
+                    }
                 }
             }
         }
