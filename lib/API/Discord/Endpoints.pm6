@@ -44,7 +44,7 @@ module API::Discord::Endpoints {
             trigger-typing => '/channels/{id}/typing',
 
             pinned-messages => '/channels/{id}/pins',
-            pinned-message => '/channels/{id}/pins/{message.id}',
+            pinned-message => '/channels/{id}/pins/{message-id}',
 
             add-group-recipient => '/channels/{id}/recipients/{user.id}',
             remove-group-recipient => '/channels/{id}/recipients/{user.id}',

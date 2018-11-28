@@ -116,11 +116,11 @@ method send-message(Str $content) {
 }
 
 method pin($message) returns Promise {
-    $.api.rest.post(endpoint-for('pinned-message', message => $message));
+    $.api.rest.touch(endpoint-for(self, 'pinned-message', message-id => $message.id));
 }
 
 method unpin($message) returns Promise {
-    $.api.rest.delete(endpoint-for('pinned-message', message => $message));
+    $.api.rest.remove(endpoint-for(self, 'pinned-message', message-id => $message.id));
 }
 
 #| Shows the "user is typing..." message to everyone in the channel. Disappears
