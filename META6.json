@@ -7,7 +7,7 @@
         "Cro::WebSocket",
         "URI::Encode"
     ],
-    "description" : "Perl6 module for interacting with the Discord API.",
+    "description" : "Perl 6 module for interacting with the Discord API.",
     "licence" : "BSD-3-Clause",
     "name" : "API::Discord",
     "perl" : "6.*",
