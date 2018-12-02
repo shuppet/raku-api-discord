@@ -46,8 +46,8 @@ module API::Discord::Endpoints {
             pinned-messages => '/channels/{id}/pins',
             pinned-message => '/channels/{id}/pins/{message-id}',
 
-            add-group-recipient => '/channels/{id}/recipients/{user.id}',
-            remove-group-recipient => '/channels/{id}/recipients/{user.id}',
+            add-group-recipient => '/channels/{id}/recipients/{user-id}',
+            remove-group-recipient => '/channels/{id}/recipients/{user-id}',
         },
         Guild =>
         {
