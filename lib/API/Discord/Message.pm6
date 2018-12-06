@@ -170,9 +170,11 @@ method from-json (%json) returns ::?CLASS {
     # objects, which should have their own from-json. However, we're not going
     # to go and fetch related objects that are provided by ID; only ones that we
     # already have the data for.
-# TODO: Decide where these factories should go, and then use them.
-#    %constructor<author> = $.api.User.from-json($json<author>);
+    if ! %json<webhook_id> {
+        %constructor<author> = $api.inflate-user($json<author>);
+    }
     %constructor<mentions> = %json<mentions>.map( {$api.inflate-user($_)} ).Array;
+
 #    %constructor<attachments> = $json<attachments>.map: self.create-attachment($_);
 #    %constructor<embeds> = $json<embeds>.map: self.create-embed($_);
 #    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
