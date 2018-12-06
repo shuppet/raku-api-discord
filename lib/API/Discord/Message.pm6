@@ -171,7 +171,7 @@ method from-json (%json) returns ::?CLASS {
     # to go and fetch related objects that are provided by ID; only ones that we
     # already have the data for.
     if ! %json<webhook_id> {
-        %constructor<author> = $api.inflate-user($json<author>);
+        %constructor<author> = $api.inflate-user(%json<author>);
     }
     %constructor<mentions> = %json<mentions>.map( {$api.inflate-user($_)} ).Array;
 
