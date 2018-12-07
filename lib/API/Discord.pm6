@@ -182,7 +182,8 @@ method !start-message-tap {
 method !handle-message($message) {
     if $message<d><channels> {
         for $message<d><channels>.values -> $c {
-            %.channels{$c<id>} = self.create-channel($c);
+            $c<guild_id> = $message<d><id>;
+            %.channels{$c<id>} = self.inflate-channel($c);
         }
     }
     elsif $message<t> eq 'READY' {
