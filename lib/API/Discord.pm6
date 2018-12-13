@@ -302,6 +302,10 @@ method create-guild (%params) returns Guild {
     Guild.new(|%params, api => self);
 }
 
+method get-user ($id) returns Promise {
+    User.new(id => $id, _api => self).read($!conn.rest)
+}
+
 #| Returns a User object from a JSON-shaped hash.
 method inflate-user (%json) returns User {
     User.from-json(%(|%json, _api => self));
