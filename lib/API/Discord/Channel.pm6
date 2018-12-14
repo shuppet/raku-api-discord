@@ -108,7 +108,7 @@ method pinned-messages($force?) returns Promise {
 }
 
 #| Sends a message to the channel and returns the POST promise.
-method send-message(Str $content) {
+method send-message($content) {
     $.api.create-message({
         channel-id => $.id,
         :$content
