@@ -243,61 +243,55 @@ to the documented return value.
 
 =end pod
 
-#| Returns a single Message object by channel ID and message ID. This always
-#| fetches. To cache messages against their channel, use Channel.get-messages.
+#| See also get-message(s) on the Channel class.
 method get-message ($channel-id, $id) returns Promise {
-    Message.new(:$channel-id, :$id, :api(self)).fetch($!conn.rest);
+    Message.new(:$channel-id, :$id, :api(self)).read($!conn.rest);
 }
 
-#| Returns an array of Message objects from their IDs. Fetches as necessary.
 method get-messages ($channel-id, @message-ids) returns Promise {
     Promise.allof( @message-ids.map: self.get-message($channel-id, *) );
 }
 
-#| Returns a Message object from a JSON-shaped hash.
 method inflate-message (%json) returns Message {
     Message.from-json(%(|%json, _api => self));
 }
 
-#| Returns a Message object using its constructor
 method create-message (%params) returns Message {
     Message.new(|%params, api => self);
 }
 
-#| Returns a single Channel object by ID, fetching if necessary.
 method get-channel ($id) returns Promise {
     start {
         %.channels{$id} //= await Channel.new(id => $id, _api => self).read($!conn.rest)
     }
 }
 
-#| Returns an array of Channel objects from their IDs. Fetches as necessary.
-method get-channels (@channel-ids) returns Array[Channel] {
+method get-channels (@channel-ids) returns Promise {
+    Promise.allof( @channel-ids.map: self.get-channel(*) );
 }
 
-#| Returns a Channel object from a JSON-shaped hash.
 method inflate-channel (%json) returns Channel {
     Channel.from-json(%(|%json, _api => self));
 }
 
-#| Returns a Channel object using its constructor
 method create-channel (%params) returns Channel {
     Channel.new(|%params, api => self);
 }
 
-#| Returns a single Guild object by ID, fetching if necessary.
-method get-guild ($id) returns Guild {}
-
-#| Returns an array of Guild objects from their IDs. Fetches as necessary.
-method get-guilds (@guild-ids) returns Array[Guild] {
+method get-guild ($id) returns Promise {
+    start {
+        %.guilds{$id} //= Guild.new(id => $id, _api => self).read($!conn.rest)
+    }
 }
 
-#| Returns a Guild object from a JSON-shaped hash.
+method get-guilds (@guild-ids) returns Promise {
+    Promise.allof( @guild-ids.map: self.get-guild(*) );
+}
+
 method inflate-guild (%json) returns Guild {
     Guild.from-json(%(|%json, _api => self));
 }
 
-#| Returns a Guild object using its constructor
 method create-guild (%params) returns Guild {
     Guild.new(|%params, api => self);
 }
@@ -306,12 +300,14 @@ method get-user ($id) returns Promise {
     User.new(id => $id, _api => self).read($!conn.rest)
 }
 
-#| Returns a User object from a JSON-shaped hash.
+method get-users (@user-ids) returns Promise {
+    Promise.allof( @user-ids.map: self.get-user(*) );
+}
+
 method inflate-user (%json) returns User {
     User.from-json(%(|%json, _api => self));
 }
 
-#| Returns a User object using its constructor
 method create-user (%params) returns User {
     User.new(|%params, api => self);
 }
