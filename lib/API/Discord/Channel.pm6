@@ -58,6 +58,7 @@ has $.icon;
 has $.owner-id;
 has $.application-id;
 has $.parent-id;
+has $.rate-limit-per-user;
 has DateTime $.last-pin-timestamp;
 
 has $.parent-category;
@@ -146,17 +147,31 @@ method bulk-delete(@messages) {
     }
 }
 
-method to-json {}
+method to-json {
+    # We're only allowed to update a subset of the fields we receive.
+    my %self := self.Capture.hash;
+
+    my %json = %self<position bitrate name topic icon>:kv;
+    %json<nsfw rate_limit_per_user user_limit parent_id> = %self<is-nsfw rate-limit-per-user user-limit parent-id>;
+    # TODO: permission overwrites
+
+    return %json
+}
 
 method from-json($json) {
     my %constructor = $json<id position bitrate name topic icon>:kv;
     %constructor<api> = $json<_api>;
     #%constructor<type> = ChannelType($json<type>.Int);
-    %constructor<guild-id last-message-id user-limit owner-id application-id parent-id is-nsfw>
-        = $json<guild_id last_message_id user_limit owner_id application_id parent_id nsfw>;
+    %constructor<
+        guild-id last-message-id rate-limit-per-user
+        owner-id application-id parent-id is-nsfw user-limit>
+    = $json<
+        guild_id last_message_id rate_limit_per_user
+        owner_id application_id parent_id nsfw user_limit>;
 
     %constructor<last-pin-timestamp> = DateTime.new($json<last_pin_timestamp>)
         if $json<last_pin_timestamp>;
 
+    # TODO: permission overwrites
     return self.new(|%constructor);
 }
