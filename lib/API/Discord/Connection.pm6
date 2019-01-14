@@ -78,7 +78,6 @@ submethod TWEAK {
             Authorization => 'Bot ' ~ $!token,
             User-agent => "DiscordBot (https://github.io/shuppet/p6-api-discord, 0.0.1)",
             Accept => 'application/json, */*',
-            Accept-encoding => 'gzip, deflate',
             Connection => 'keep-alive',
 
         ]
@@ -177,7 +176,7 @@ method handle-opcode($json) {
 method setup-heartbeat($interval) {
     $!heartbeat = Supply.interval($interval);
     $!heartbeat.tap: {
-        note "♥";
+        note "« ♥";
         $!websocket.send({
             d => $!sequence,
             op => OPCODE::heartbeat,
@@ -201,7 +200,7 @@ method setup-heartbeat($interval) {
 #| Prevents the panic stations we get when we don't hear back from the
 #| heartbeat.
 method ack-heartbeat-ack {
-    note "Still with us ♥";
+    note "» ♥";
     $!hb-ack.keep;
 }
 

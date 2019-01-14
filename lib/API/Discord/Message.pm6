@@ -121,20 +121,40 @@ will be set, even if you passed that in too.
 This ensures that they will be consistent, at least until you break it on
 purpose.
 
+=head2 addressed
+Does the API user appear in the mentions array?
 =end pod
 
-#| Returns a Promise that resolves to the channel.
-method channel {
-    $.api.get-channel($.channel-id)
+method addressed returns Bool {
+    @.mentions.first({ $.api.user.real-id == $_.real-id }).Bool
 }
+
+#| Returns a Promise that resolves to the channel, or awaits the channel for you
+#| if you use C<:now>.
+method channel(:$now) {
+    return $now ?? (await $_) !! $_ given $.api.get-channel($.channel-id);
+}
+
+=begin pod
+=head2 add-reaction
+Provide a string containg the emoji to use. This is either a unicode emoji, or a
+fully-specified guild-specific emoji of the form C<$name:$id>, e.g.
+C<flask:502112742656835604>
+=end pod
 
 method add-reaction(Str $e is copy) {
     $e = uri_encode_component($e) unless $e ~~ /\:/;
     Reaction.new(:emoji($e), :user('@me'), :message(self)).create($.api.rest);
 }
 
+#| Pins this message to its channel.
+method pin returns Promise {
+    self.channel(:now).pin(self)
+}
+
 #| Inflates the Message object from the JSON we get from Discord
 method from-json (%json) returns ::?CLASS {
+    my $api = %json<_api>;
     # These keys we can lift straight out
     my %constructor = %json<id nonce content type>:kv;
 
@@ -150,15 +170,17 @@ method from-json (%json) returns ::?CLASS {
     # objects, which should have their own from-json. However, we're not going
     # to go and fetch related objects that are provided by ID; only ones that we
     # already have the data for.
-# TODO: Decide where these factories should go, and then use them.
-#    %constructor<author> = $.api.User.from-json($json<author>);
-#    %constructor<mentions> = $json<mentions>.map: $.api.create-user($_);
+    if ! %json<webhook_id> {
+        %constructor<author> = $api.inflate-user(%json<author>);
+    }
+    %constructor<mentions> = %json<mentions>.map( {$api.inflate-user($_)} ).Array;
+
 #    %constructor<attachments> = $json<attachments>.map: self.create-attachment($_);
 #    %constructor<embeds> = $json<embeds>.map: self.create-embed($_);
 #    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
 
-    %constructor<api> = %json<_api>;
-    return self.new(|%constructor);
+    %constructor<api> = $api;
+    return self.new(|%constructor.Map);
 }
 
 #| Deflates the object back to JSON to send to Discord

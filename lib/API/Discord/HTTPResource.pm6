@@ -51,6 +51,13 @@ methods should match those.
 role RESTy[$base-url] is export {
     has $.base-url = $base-url;
 
+    multi method get ($uri, %args) {
+        callwith("$.base-url$uri", %args);
+    }
+    multi method get ($uri, *%args) {
+        callwith("$.base-url$uri", |%args);
+    }
+
     #| Sends a JSONy object to the given endpoint. Updates if the object has an
     #| ID; creates if it does not.
     method send(Str $endpoint, JSONy:D $object) returns Promise {
@@ -69,6 +76,12 @@ role RESTy[$base-url] is export {
         }
     }
 
+    #| Sends a PUT but no data required. Useful to avoid creating whole classes
+    #| just so they can self-send
+    method touch(Str $endpoint) returns Promise {
+        self.put: "$.base-url$endpoint", body => {};
+    }
+
     #| Creates a JSONy object, given a full URL and the class.
     method fetch(Str $endpoint, JSONy:D $obj) returns Promise {
         start {
@@ -78,9 +91,8 @@ role RESTy[$base-url] is export {
     }
 
     #| Deletes the thing with DELETE
-    method remove(Str $endpoint, JSONy:D $obj) returns Promise {
-        my $full-endpoint = "$.base-url$endpoint";
-        self.delete: $full-endpoint
+    method remove(Str $endpoint) returns Promise {
+        self.delete: "$.base-url$endpoint";
     }
 }
 
