@@ -144,7 +144,7 @@ has Int $.version = 6;
 #| URL for REST requests (note: URL not host)
 has Str $.rest-url = 'https://discordapp.com/api';
 #| Host for websockets
-has Str $.ws-host = 'gateway.discord.gg';
+has Str $.ws-url = 'wss://gateway.discord.gg';
 #| Bot token or whatever, used for auth.
 has Str $.token is required;
 #| Shard number for this connection
@@ -204,7 +204,7 @@ submethod DESTROY {
 #| Connects to discord. Await the returned Promise, then tap $.messages and $.events
 method connect($session-id?, $sequence?) returns Promise {
     $!conn = Connection.new(
-        ws-url => "wss://{$.ws-host}/?v={$.version}&encoding=json",
+        ws-url => "{$.ws-url}/?v={$.version}&encoding=json",
         rest-url => $.rest-url,
         :$.token,
         :$.shard,
