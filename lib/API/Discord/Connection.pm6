@@ -34,8 +34,10 @@ use API::Discord::HTTPResource;
 use Cro::WebSocket::Client::Connection;
 use Cro::HTTP::Client;
 
+#| URL for REST requests
+has Str $.rest-url is required;
 #| Websocket URL
-has Str $.url is required;
+has Str $.ws-url is required;
 #| User's bot/API token
 has Str $.token is required;
 #| Auto-populated from received websocket messages. Used to resume.
@@ -67,7 +69,7 @@ has Promise $.ready = Promise.new;
 
 =head2 new
 
-Only C<$.url> and C<$.token> are required here.
+Only C<$.ws-url>, C<$rest-url>, and C<$.token> are required here.
 
 =end pod
 
@@ -85,7 +87,7 @@ submethod TWEAK {
 
         ]
     )
-    but RESTy["https://discordapp.com/api"];
+    but RESTy[$!rest-url];
 
     $!messages = Supplier::Preserving.new;
 
@@ -97,7 +99,7 @@ submethod TWEAK {
 #| Can be called again, apparently.
 method connect {
     my $cli = Cro::WebSocket::Client.new: :json;
-    $!opener = $cli.connect($!url)
+    $!opener = $cli.connect($!ws-url)
         .then( -> $connection {
             self._on_ws_connect($connection.result);
         });
