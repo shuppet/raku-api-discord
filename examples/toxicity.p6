@@ -14,9 +14,6 @@ sub MAIN($discord-token, $perspective-token) {
 
     react {
         whenever $discord.messages -> $message {
-
-            say $message.content;
-
             my $toxicity = await $http.post(
                 "https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={$perspective-token}",
                 body => {
@@ -29,9 +26,6 @@ sub MAIN($discord-token, $perspective-token) {
             );
 
             my $result = await $toxicity.body;
-
-            say $result<attributeScores><TOXICITY>;
-
             if $result<attributeScores><TOXICITY><summaryScore><value> > 0.7 {
                 $message.add-reaction('☹');
             }
