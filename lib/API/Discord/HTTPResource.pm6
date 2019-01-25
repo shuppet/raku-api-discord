@@ -108,7 +108,7 @@ role RESTy[$base-url] is export {
     method fetch(Str $endpoint, JSONy:D $obj) returns Promise {
         start {
             my $b = await (await self.get($endpoint)).body;
-            $obj.from-json($b.result);
+            $obj.from-json($b);
         }
     }
 
