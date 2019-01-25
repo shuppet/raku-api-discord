@@ -108,5 +108,6 @@ method from-json (%json) {
     my %constructor = %json<id name icon splash>:kv;
     %constructor<is-owner> = %json<owner>;
 
+    %constructor<api> = %json<_api>;
     return self.new(|%constructor);
 }
