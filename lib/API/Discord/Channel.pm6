@@ -75,6 +75,10 @@ submethod TWEAK() {
     $!fetch-message-promise = start {};
 }
 
+method guild(:$now) {
+    return $now ?? (await $_) !! $_ given $.api.get-guild($.guild-id);
+}
+
 #| Fetch N messages and returns a Promise that resolves to the complete new list
 #| of messages. If something is already fetching messages, your call will await
 #| those before making its own call on top of them.
