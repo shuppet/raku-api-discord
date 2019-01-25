@@ -152,7 +152,10 @@ role HTTPResource is export {
     #| fill in self.
     multi method read(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'read');
-        $rest.fetch($endpoint, self).then({ self if $^a.result });
+        start {
+            await $rest.fetch($endpoint, self);
+            self;
+        }
     }
 
     #| Updates the resource. Must have an ID already. Returns a Promise for the
