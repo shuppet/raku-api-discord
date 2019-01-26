@@ -57,22 +57,44 @@ role RESTy[$base-url] is export {
     multi method get ($uri, *%args) {
         callwith("$.base-url$uri", |%args);
     }
+    multi method post ($uri, %args) {
+        callwith("$.base-url$uri", %args);
+    }
+    multi method post ($uri, *%args) {
+        callwith("$.base-url$uri", |%args);
+    }
+    multi method patch ($uri, %args) {
+        callwith("$.base-url$uri", %args);
+    }
+    multi method patch ($uri, *%args) {
+        callwith("$.base-url$uri", |%args);
+    }
+    multi method put ($uri, %args) {
+        callwith("$.base-url$uri", %args);
+    }
+    multi method put ($uri, *%args) {
+        callwith("$.base-url$uri", |%args);
+    }
+    multi method delete ($uri, %args) {
+        callwith("$.base-url$uri", %args);
+    }
+    multi method delete ($uri, *%args) {
+        callwith("$.base-url$uri", |%args);
+    }
 
     #| Sends a JSONy object to the given endpoint. Updates if the object has an
     #| ID; creates if it does not.
     method send(Str $endpoint, JSONy:D $object) returns Promise {
-        my $full-endpoint = "$.base-url$endpoint";
-
         if $object.can('self-send') {
-            return $object.self-send($full-endpoint, self)
+            return $object.self-send($endpoint, self)
         }
         # TODO: does anything generate data such that we need to re-fetch after
         # creation?
         if $object.can('id') and $object.id {
-            self.put: $full-endpoint, body => $object.to-json;
+            self.put: $endpoint, body => $object.to-json;
         }
         else {
-            self.post: $full-endpoint, body => $object.to-json;
+            self.post: $endpoint, body => $object.to-json;
         }
     }
 
@@ -86,7 +108,7 @@ role RESTy[$base-url] is export {
     method fetch(Str $endpoint, JSONy:D $obj) returns Promise {
         start {
             my $b = await (await self.get($endpoint)).body;
-            $obj.from-json($b.result);
+            $obj.from-json($b);
         }
     }
 
@@ -130,7 +152,10 @@ role HTTPResource is export {
     #| fill in self.
     multi method read(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'read');
-        $rest.fetch($endpoint, self).then({ self if $^a.result });
+        start {
+            await $rest.fetch($endpoint, self);
+            self;
+        }
     }
 
     #| Updates the resource. Must have an ID already. Returns a Promise for the

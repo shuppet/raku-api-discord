@@ -262,7 +262,7 @@ method create-message (%params) returns Message {
 
 method get-channel ($id) returns Promise {
     start {
-        %.channels{$id} //= await Channel.new(id => $id, _api => self).read($!conn.rest)
+        %.channels{$id} //= await Channel.new(id => $id, api => self).read($!conn.rest)
     }
 }
 
@@ -280,7 +280,7 @@ method create-channel (%params) returns Channel {
 
 method get-guild ($id) returns Promise {
     start {
-        %.guilds{$id} //= Guild.new(id => $id, _api => self).read($!conn.rest)
+        %.guilds{$id} //= await Guild.new(id => $id, api => self).read($!conn.rest)
     }
 }
 
@@ -297,7 +297,7 @@ method create-guild (%params) returns Guild {
 }
 
 method get-user ($id) returns Promise {
-    User.new(id => $id, _api => self).read($!conn.rest)
+    User.new(id => $id, api => self).read($!conn.rest)
 }
 
 method get-users (@user-ids) returns Promise {
