@@ -103,9 +103,11 @@ method assign-role($user, $role-id) {
 
         $member<roles>.push: $role-id;
 
-        await $.api.rest.patch($e, {
-            roles => $member<roles>
-        });
+        await $.api.rest.patch($e, 
+            body => {
+                roles => $member<roles>
+            }
+        );
     }
 }
 
