@@ -138,6 +138,8 @@ method handle-opcode($json) {
     my $payload = $json<d>;
     my $event = $json<t>; # mnemonic: rtfm
 
+    say $json<op>;
+
     given ($json<op>) {
         when OPCODE::despatch {
             if $event eq 'READY' {

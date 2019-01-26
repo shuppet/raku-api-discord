@@ -94,16 +94,29 @@ has @.members;
 has @.channels;
 has @.presences;
 
-method assign-role($user, $role-id) {
+method assign-role($user, *@role-ids) {
     start {
         my $e = endpoint-for( self, 'get-member', user-id => $user.id ) ;
         my $member = await (await $.api.rest.get($e)).body;
 
-        return if $member<roles> ~~ $role-id;
+        $member<roles>.append: @role-ids;
 
-        $member<roles>.push: $role-id;
+        await $.api.rest.patch($e,
+            body => {
+                roles => $member<roles>
+            }
+        );
+    }
+}
 
-        await $.api.rest.patch($e, 
+method unassign-role($user, *@role-ids) {
+    start {
+        my $e = endpoint-for( self, 'get-member', user-id => $user.id ) ;
+        my $member = await (await $.api.rest.get($e)).body;
+
+        $member<roles> = $member<roles>.grep: * !~~ @role-ids;
+
+        await $.api.rest.patch($e,
             body => {
                 roles => $member<roles>
             }
