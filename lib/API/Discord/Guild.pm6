@@ -107,6 +107,7 @@ method assign-role($user, *@role-ids) {
             }
         );
     }
+
 }
 
 method unassign-role($user, *@role-ids) {
@@ -114,7 +115,8 @@ method unassign-role($user, *@role-ids) {
         my $e = endpoint-for( self, 'get-member', user-id => $user.id ) ;
         my $member = await (await $.api.rest.get($e)).body;
 
-        $member<roles> = $member<roles>.grep: * !~~ @role-ids;
+        $member<roles> = $member<roles>.grep: @role-ids !~~ *;
+        say $member;
 
         await $.api.rest.patch($e,
             body => {
