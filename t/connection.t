@@ -9,22 +9,36 @@ use Cro::WebSocket::Message;
 use Test;
 
 my $server-send-message = Supplier.new;
+my $server-receive-message = Supplier.new;
+
+my %tests = 
+    :!connected,
+    :!identified,
+    heartbeats => {
+        expected => 0,
+        received => 0,
+    }
+;
 my $app = route {
     get -> :$v, :$encoding {
         web-socket
             :body-parsers(Cro::WebSocket::BodyParser::JSON),
             :body-serializers(Cro::WebSocket::BodySerializer::JSON),
         -> $recv {
+            %tests<connected> = True;
             supply {
                 whenever $recv -> $inc {
                     my $json = $inc.body.result;
+                    $server-receive-message.emit($json);
                     given $json<op> {
                         when OPCODE::heartbeat {
+                            %tests<heartbeats><received>++;
                             $server-send-message.emit({
                                 op => OPCODE::heartbeat-ack,
                             });
                         }
                         when OPCODE::identify {
+                            %tests<identified> = True;
                         }
                         default {
                             die "Attempted to send to websocket";
@@ -55,15 +69,21 @@ my $discord = API::Discord.new(
     token => 'testtoken',
 );
 
+my $heartbeat-interval = 1000;
+Supply.interval($heartbeat-interval/1000).tap: { %tests<heartbeats><expected>++ };
 await $discord.connect;
 $server-send-message.emit({
     op => OPCODE::hello,
     d => {
-        heartbeat_interval => 1000
+        heartbeat_interval => $heartbeat-interval
     }
 });
-react {
-    whenever $discord.messages -> $message {
-        say "awoo";
-    }
-}
+
+# Remember to wait a bit longer for the final hb
+sleep 3.1;
+
+ok %tests<connected>, "Connected";
+ok %tests<identified>, "Identified";
+ok $_<expected> == $_<received>, "Heartbeats correct" given %tests<heartbeats>;
+
+%tests.say;
