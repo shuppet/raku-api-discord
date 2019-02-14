@@ -139,7 +139,7 @@ method handle-opcode($json) {
     my $event = $json<t>; # mnemonic: rtfm
 
     given ($json<op>) {
-        when OPCODE::despatch {
+        when OPCODE::dispatch {
             if $event eq 'READY' {
                 $!session-id = $payload<session_id>;
             }
