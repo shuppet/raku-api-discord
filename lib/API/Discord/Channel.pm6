@@ -48,7 +48,7 @@ has $.id;
 has $.type;
 has $.guild-id;
 has $.position;
-has $.name;
+has $.name is rw;
 has $.topic;
 has $.is-nsfw;
 has $.last-message-id;
