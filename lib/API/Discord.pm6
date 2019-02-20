@@ -213,6 +213,12 @@ method connect($session-id?, $sequence?) returns Promise {
     return $!conn.opener.then({ self!start-message-tap; $!conn.closer });
 }
 
+#| Proxies the READY promise on connection. Await this before communicating with
+#discord.
+method ready returns Promise {
+    $!conn.ready;
+}
+
 #| Emits a Message object whenever a message is received. B<TODO> Currently this emits hashes.
 method messages returns Supply {
     $!messages.Supply;

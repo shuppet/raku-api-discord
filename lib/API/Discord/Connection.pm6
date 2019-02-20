@@ -58,6 +58,9 @@ has Promise $.closer;
 #| This Promise is kept when the websocket connects and is set up.
 has Promise $.opener;
 
+#| This Promise is kept when Discord has sent us a READY event
+has Promise $.ready = Promise.new;
+
 =begin pod
 
 =head1 METHODS
@@ -142,6 +145,7 @@ method handle-opcode($json) {
         when OPCODE::dispatch {
             if $event eq 'READY' {
                 $!session-id = $payload<session_id>;
+                $!ready.keep;
             }
             $!messages.emit($json);
         }
