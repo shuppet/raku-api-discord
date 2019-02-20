@@ -12,7 +12,7 @@ sub MAIN($token, $channel-id) {
     
     react {
         whenever Supply.interval(60) {
-            $channel.name = '🕒 ' ~ .hour ~ ':' ~ .minute given DateTime.now;
+            $channel.name = '🕒 ' ~ sprintf("%02d:%02d", .hour, .minute) given DateTime.now;
             $channel.update;
             CATCH {.say}
         }
