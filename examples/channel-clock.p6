@@ -2,7 +2,6 @@
 
 use API::Discord;
 
-
 sub MAIN($token, $channel-id) {
     my $discord = API::Discord.new(:$token);
 
