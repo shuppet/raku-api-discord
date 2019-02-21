@@ -132,7 +132,7 @@ method unpin($message) returns Promise {
 #| after ~10 seconds or when a message is sent.
 method trigger-typing {
     # TODO: Handle error
-    $.api.rest.post(endpoint-for(self, 'trigger-typing'));
+    $.api.rest.post(endpoint-for(self, 'trigger-typing'), :body(''));
 }
 
 #| Deletes these messages. Max 100, minimum 2. If any message does not belong to
