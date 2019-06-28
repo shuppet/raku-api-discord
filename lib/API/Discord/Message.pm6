@@ -99,7 +99,10 @@ has $.author;
 has @.mentions;
 has @.mentions-roles; # will lazy { ... }
 has @.attachments;
+# GET a message and receive embeds plural. SEND a message and you can only send
+# one. I do not know at this point how you can create multiple embeds.
 has @.embeds;
+has $.embed;
 # TODO: perhaps this should be emoji => count and we don't need the Reaction class.
 # (We can use Emoji objects as the keys if we want)
 has @.reactions;
@@ -159,8 +162,8 @@ method from-json (%json) returns ::?CLASS {
     my %constructor = %json<id nonce content type>:kv;
 
     # These keys we sanitized for nice Perl6 people
-    %constructor<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids>
-        = %json<channel_id tts mention_everyone pinned webhook_id mention_roles>;
+    %constructor<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids embeds>
+        = %json<channel_id tts mention_everyone pinned webhook_id mention_roles embeds>;
 
     # These keys we can trivially inflate.
     %constructor<timestamp> = DateTime.new(%json<timestamp>);
@@ -176,7 +179,6 @@ method from-json (%json) returns ::?CLASS {
     %constructor<mentions> = %json<mentions>.map( {$api.inflate-user($_)} ).Array;
 
 #    %constructor<attachments> = $json<attachments>.map: self.create-attachment($_);
-#    %constructor<embeds> = $json<embeds>.map: self.create-embed($_);
 #    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
 
     %constructor<api> = $api;
@@ -186,15 +188,18 @@ method from-json (%json) returns ::?CLASS {
 #| Deflates the object back to JSON to send to Discord
 method to-json returns Hash {
     my %self := self.Capture.hash;
-    my %json = %self<id nonce content type timestamp>:kv;
+    my %json = %self<id nonce type timestamp>:kv;
     %json<edited_timestamp> = $_ with %self<edited>;
 
-    %json<channel_id tts mention_everyone pinned webhook_id mention_roles>
-        = %self<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids>;
+    # Can't send blank content but we might have embed with no content
+    %json<content> = $_ with %self<content>;
+
+    %json<channel_id tts mention_everyone pinned webhook_id mention_roles embed>
+        = %self<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids embed>;
 
     $.author andthen %json<author> = .to-json;
 
-    for <mentions attachments embeds reactions> -> $prop {
+    for <mentions attachments reactions> -> $prop {
         %self{$prop} andthen %json{$prop} = [map *.to-json, $_.values]
     }
 
