@@ -126,9 +126,9 @@ method update-member($user, %new-data) returns Promise {
     $.api.rest.patch($e, body => %new-data)
 }
 
-method remove-member($user) {
+method remove-member($user) returns Promise {
     my $e = endpoint-for( self, 'remove-member', user-id => $user.id );
-    return await (await $.api.rest.delete($e)).body;
+    return $.api.rest.delete($e);
 }
 
 #! See L<Api::Discord::JSONy>
