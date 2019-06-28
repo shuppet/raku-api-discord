@@ -116,18 +116,30 @@ method unassign-role($user, *@role-ids) {
     }
 }
 
-method get-member($user) returns Hash {
-    my $e = endpoint-for( self, 'get-member', user-id => $user.id );
+multi method get-member(API::Discord::Object $user) returns Hash {
+    samewith($user.id);
+}
+
+multi method get-member(Int $user-id) returns Hash {
+    my $e = endpoint-for( self, 'get-member', :$user-id );
     return await (await $.api.rest.get($e)).body;
 }
 
-method update-member($user, %new-data) returns Promise {
-    my $e = endpoint-for( self, 'get-member', user-id => $user.id );
+multi method update-member(API::Discord::Object $user, %new-data) returns Promise {
+    samewith($user.id, %new-data);
+}
+
+multi method update-member(Int $user-id, %new-data) returns Promise {
+    my $e = endpoint-for( self, 'get-member', :$user-id );
     $.api.rest.patch($e, body => %new-data)
 }
 
-method remove-member($user) returns Promise {
-    my $e = endpoint-for( self, 'remove-member', user-id => $user.id );
+multi method remove-member(API::Discord::Object $user) returns Promise {
+    samewith($user.id);
+}
+
+multi method remove-member(Int $user-id) returns Promise {
+    my $e = endpoint-for( self, 'remove-member', :$user-id );
     return $.api.rest.delete($e);
 }
 
