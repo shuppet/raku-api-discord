@@ -112,8 +112,7 @@ method assign-role($user, *@role-ids) {
 
 method unassign-role($user, *@role-ids) {
     start {
-        my $e = endpoint-for( self, 'get-member', user-id => $user.id ) ;
-        my $member = await (await $.api.rest.get($e)).body;
+        my $member = self.get-member($user);
 
         $member<roles> = $member<roles>.grep: @role-ids !~~ *;
         say $member;
@@ -124,6 +123,11 @@ method unassign-role($user, *@role-ids) {
             }
         );
     }
+}
+
+method get-member($user) returns Hash {
+    my $e = endpoint-for( self, 'get-member', user-id => $user.id ) ;
+    return await (await $.api.rest.get($e)).body;
 }
 
 #! See L<Api::Discord::JSONy>
