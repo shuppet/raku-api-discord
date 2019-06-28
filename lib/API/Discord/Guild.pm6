@@ -100,11 +100,7 @@ method assign-role($user, *@role-ids) {
 
         $member<roles>.append: @role-ids;
 
-        await $.api.rest.patch($e,
-            body => {
-                roles => $member<roles>
-            }
-        );
+        await self.update-member($user, { roles => $member<roles> });
     }
 
 }
@@ -116,17 +112,18 @@ method unassign-role($user, *@role-ids) {
         $member<roles> = $member<roles>.grep: @role-ids !~~ *;
         say $member;
 
-        await $.api.rest.patch($e,
-            body => {
-                roles => $member<roles>
-            }
-        );
+        await self.update-member($user, {{ roles => $member<roles> });
     }
 }
 
 method get-member($user) returns Hash {
-    my $e = endpoint-for( self, 'get-member', user-id => $user.id ) ;
+    my $e = endpoint-for( self, 'get-member', user-id => $user.id );
     return await (await $.api.rest.get($e)).body;
+}
+
+method update-member($user, %new-data) returns Promise {
+    my $e = endpoint-for( self, 'get-member', user-id => $user.id );
+    $.api.rest.patch($e, body => %new-data)
 }
 
 #! See L<Api::Discord::JSONy>
