@@ -150,7 +150,7 @@ method trigger-typing {
 method bulk-delete(@messages) {
     start {
         # TODO: I don't think we're handling a failure from this correctly
-        await $.api.rest.post(endpoint-for(self, 'bulk-delete'), messages => @messages.map: *.id);
+        await $.api.rest.post(endpoint-for(self, 'bulk-delete-messages'), messages => @messages.map: *.id);
 
         my %antipairs{Any} = @!messages.antipairs;
         my @removed-idxs = %antipairs{@messages};
