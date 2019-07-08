@@ -21,6 +21,8 @@ whether or not you can do this is up to the user; you can always try.
 
 =end pod
 
+class Member { ... };
+
 enum MessageNotificationLevel (
     <notification-all-messages notification-only-mentions>
 );
@@ -116,13 +118,14 @@ method unassign-role($user, *@role-ids) {
     }
 }
 
-multi method get-member(API::Discord::Object $user) returns Hash {
+multi method get-member(API::Discord::Object $user) returns Member {
     samewith($user.id);
 }
 
-multi method get-member(Int $user-id) returns Hash {
+multi method get-member(Int $user-id) returns Member {
     my $e = endpoint-for( self, 'get-member', :$user-id );
-    return await (await $.api.rest.get($e)).body;
+    my $member = $.api.rest.get($e).result.body.result;
+    $.api.inflate-member($member);
 }
 
 multi method update-member(API::Discord::Object $user, %new-data) returns Promise {
@@ -160,4 +163,32 @@ method from-json (%json) {
 
     %constructor<api> = %json<_api>;
     return self.new(|%constructor);
+}
+
+class Member does API::Discord::Object {
+    has $.guild;
+    has $.user;
+    has $.nick;
+    has Bool $.is-owner;
+    has @.roles;
+    has DateTime $.joined-at;
+    has DateTime $.premium-since;
+    has Bool $.is-deaf;
+    has Bool $.is-mute;
+
+    method from-json(%json) {
+        my %constructor = %json<nick roles>:kv;
+        my $api = %json<_api>;
+
+        %constructor<is-owner is-deaf is-mute> = %json<deaf mute>;
+
+        %constructor<guild> = $api.inflate-guild(%json<guild>);
+        %constructor<user> = $.api.inflate-user(%json<user>);
+        %constructor<owner> = %constructor<guild>.owner_id == %constructor<user>.id;
+
+        %constructor<joined-at> = DateTime.new(%json<joined_at>);
+        %constructor<premium-since> = DateTime.new(%json<premium_since>);
+
+        return self.new(|%constructor, api => $api);
+    }
 }

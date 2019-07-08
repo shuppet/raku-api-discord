@@ -318,3 +318,6 @@ method create-user (%params) returns User {
     User.new(|%params, api => self);
 }
 
+method inflate-member(%json) returns Guild::Member {
+    Member.from-json(%(|%json, _api => self));
+}
