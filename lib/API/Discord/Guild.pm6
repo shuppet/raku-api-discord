@@ -1,5 +1,6 @@
 use API::Discord::Object;
 use API::Discord::Endpoints;
+use API::Discord::Permissions;
 
 unit class API::Discord::Guild does API::Discord::Object is export;
 
@@ -175,6 +176,20 @@ class Member does API::Discord::Object {
     has DateTime $.premium-since;
     has Bool $.is-deaf;
     has Bool $.is-mute;
+
+    method combined-permissions returns Int {
+        @.roles.sort(*<position>).map(*<permissions>).reduce(&[|+]);
+    }
+
+    method has-all-permissions(PERMISSION @permissions) returns Bool {
+        return True if $.is-owner;
+        API::Discord::Permissions::has-all-permissions(self.combined-permissions, @permissions);
+    }
+
+    method has-any-permission(PERMISSION @permissions) returns Bool {
+        return True if $.is-owner;
+        API::Discord::Permissions::has-any-permission(self.combined-permissions, @permissions);
+    }
 
     method from-json(%json) {
         my %constructor = %json<nick roles>:kv;
