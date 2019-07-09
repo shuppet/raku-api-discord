@@ -126,6 +126,7 @@ multi method get-member(API::Discord::Object $user) returns Member {
 multi method get-member(Int $user-id) returns Member {
     my $e = endpoint-for( self, 'get-member', :$user-id );
     my $member = $.api.rest.get($e).result.body.result;
+    $member<guild> = self;
     $.api.inflate-member($member);
 }
 
@@ -195,12 +196,11 @@ class Member does API::Discord::Object {
     }
 
     method from-json(%json) {
-        my %constructor = %json<nick roles>:kv;
+        my %constructor = %json<nick roles guild>:kv;
         my $api = %json<_api>;
 
         %constructor<is-owner is-deaf is-mute> = %json<deaf mute>;
 
-        %constructor<guild> = $api.inflate-guild(%json<guild>);
         %constructor<user> = $.api.inflate-user(%json<user>);
         %constructor<owner> = %constructor<guild>.owner_id == %constructor<user>.id;
 
