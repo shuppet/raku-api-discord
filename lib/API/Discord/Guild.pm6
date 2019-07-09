@@ -197,16 +197,16 @@ class Member does API::Discord::Object {
 
     method from-json(%json) {
         my %constructor = %json<nick roles guild>:kv;
-        my $api = %json<_api>;
+        my $api = %constructor<api> = %json<_api>;
 
         %constructor<is-owner is-deaf is-mute> = %json<deaf mute>;
 
-        %constructor<user> = $.api.inflate-user(%json<user>);
-        %constructor<owner> = %constructor<guild>.owner_id == %constructor<user>.id;
+        %constructor<user> = $api.inflate-user(%json<user>);
+        %constructor<owner> = %constructor<guild>.owner-id == %constructor<user>.id;
 
         %constructor<joined-at> = DateTime.new(%json<joined_at>);
         %constructor<premium-since> = DateTime.new(%json<premium_since>);
 
-        return self.new(|%constructor, api => $api);
+        return self.new(|%constructor);
     }
 }
