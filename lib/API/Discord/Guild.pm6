@@ -191,6 +191,9 @@ class Member does API::Discord::Object {
         API::Discord::Permissions::has-any-permission(self.combined-permissions, @permissions);
     }
 
+    method to-json() returns Hash {
+    }
+
     method from-json(%json) {
         my %constructor = %json<nick roles>:kv;
         my $api = %json<_api>;
