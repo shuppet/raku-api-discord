@@ -319,5 +319,5 @@ method create-user (%params) returns User {
 }
 
 method inflate-member(%json) returns Guild::Member {
-    Member.from-json(%(|%json, _api => self));
+    Guild::Member.from-json(%(|%json, _api => self));
 }
