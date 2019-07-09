@@ -178,7 +178,7 @@ class Member does API::Discord::Object {
     has Bool $.is-mute;
 
     method combined-permissions returns Int {
-        @.roles.map(*<permissions>).reduce(&[|+]);
+        @.roles.map(*<permissions>).reduce(&[+|]);
     }
 
     method has-all-permissions(PERMISSION @permissions) returns Bool {
