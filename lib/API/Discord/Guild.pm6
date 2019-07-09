@@ -205,7 +205,7 @@ class Member does API::Discord::Object {
         %constructor<owner> = %constructor<guild>.owner-id == %constructor<user>.id;
 
         %constructor<joined-at> = DateTime.new(%json<joined_at>);
-        %constructor<premium-since> = DateTime.new(%json<premium_since>);
+        %constructor<premium-since> = DateTime.new($_) with %json<premium_since>;
 
         return self.new(|%constructor);
     }
