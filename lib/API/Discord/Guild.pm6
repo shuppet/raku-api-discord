@@ -199,7 +199,7 @@ class Member does API::Discord::Object {
         my %constructor = %json<nick roles guild>:kv;
         my $api = %constructor<api> = %json<_api>;
 
-        %constructor<is-owner is-deaf is-mute> = %json<deaf mute>;
+        %constructor<is-deaf is-mute> = %json<deaf mute>;
 
         %constructor<user> = $api.inflate-user(%json<user>);
         %constructor<owner> = %constructor<guild>.owner-id == %constructor<user>.id;
