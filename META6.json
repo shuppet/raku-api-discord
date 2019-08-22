@@ -1,33 +1,33 @@
 {
-    "licence": "BSD-3-Clause",
-    "repo-type": "git",
-    "source-url": "git@github.com:shuppet/p6-api-discord.git",
-    "auth": "github:shuppet",
-    "depends": [
-        "Cro::WebSocket",
-        "URI::Encode"
-    ],
-    "provides": {
-        "X::API::Discord::Endpoint::NotEnoughArguments": "lib/API/Discord/Endpoints.pm6",
-        "API::Discord::Object": "lib/API/Discord/Object.pm6",
-        "API::Discord::JSONy": "lib/API/Discord/HTTPResource.pm6",
-        "API::Discord::RESTy": "lib/API/Discord/HTTPResource.pm6",
-        "API::Discord::Endpoints": "lib/API/Discord/Endpoints.pm6",
-        "API::Discord::User": "lib/API/Discord/User.pm6",
-        "API::Discord": "lib/API/Discord.pm6",
-        "API::Discord::HTTPResource": "lib/API/Discord/HTTPResource.pm6",
-        "API::Discord::Connection": "lib/API/Discord/Connection.pm6",
-        "API::Discord::Types": "lib/API/Discord/Types.pm6",
-        "API::Discord::Channel": "lib/API/Discord/Channel.pm6",
-        "API::Discord::Guild": "lib/API/Discord/Guild.pm6",
-        "API::Discord::Message": "lib/API/Discord/Message.pm6"
-    },
-    "name": "API::Discord",
-    "description": "Perl 6 module for interacting with the Discord API.",
-    "perl": "6.d",
-    "version": "0.0.1",
-    "authors": [
-        "Alastair 'altreus' Douglas <altreus@altre.us>",
-        "Kane 'kawaii' Valentine <kane@cute.im>"
-    ]
+  "name": "API::Discord",
+  "description": "Perl 6 module for interacting with the Discord API.",
+  "version": "0.0.1",
+  "perl": "6.d",
+  "authors": [
+    "Alastair 'altreus' Douglas <altreus@altre.us>",
+    "Kane 'kawaii' Valentine <kane@cute.im>"
+  ],
+  "auth": "github:shuppet",
+  "depends": [
+    "Cro::WebSocket",
+    "URI::Encode"
+  ],
+  "provides": {
+    "API::Discord": "lib/API/Discord.pm6",
+    "API::Discord::Channel": "lib/API/Discord/Channel.pm6",
+    "API::Discord::Connection": "lib/API/Discord/Connection.pm6",
+    "API::Discord::Endpoints": "lib/API/Discord/Endpoints.pm6",
+    "API::Discord::Guild": "lib/API/Discord/Guild.pm6",
+    "API::Discord::HTTPResource": "lib/API/Discord/HTTPResource.pm6",
+    "API::Discord::JSONy": "lib/API/Discord/HTTPResource.pm6",
+    "API::Discord::Message": "lib/API/Discord/Message.pm6",
+    "API::Discord::Object": "lib/API/Discord/Object.pm6",
+    "API::Discord::RESTy": "lib/API/Discord/HTTPResource.pm6",
+    "API::Discord::Types": "lib/API/Discord/Types.pm6",
+    "API::Discord::User": "lib/API/Discord/User.pm6",
+    "X::API::Discord::Endpoint::NotEnoughArguments": "lib/API/Discord/Endpoints.pm6"
+  },
+  "license": "BSD-3-Clause",
+  "source-url": "git@github.com:shuppet/p6-api-discord.git",
+  "repo-type": "git"
 }
