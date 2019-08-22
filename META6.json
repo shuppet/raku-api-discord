@@ -22,6 +22,7 @@
     "API::Discord::JSONy": "lib/API/Discord/HTTPResource.pm6",
     "API::Discord::Message": "lib/API/Discord/Message.pm6",
     "API::Discord::Object": "lib/API/Discord/Object.pm6",
+    "API::Discord::Permissions": "lib/API/Discord/Permissions.pm6",
     "API::Discord::RESTy": "lib/API/Discord/HTTPResource.pm6",
     "API::Discord::Types": "lib/API/Discord/Types.pm6",
     "API::Discord::User": "lib/API/Discord/User.pm6",
