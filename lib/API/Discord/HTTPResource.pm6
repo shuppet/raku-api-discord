@@ -105,10 +105,10 @@ role RESTy[$base-url] is export {
     }
 
     #| Creates a JSONy object, given a full URL and the class.
-    method fetch(Str $endpoint, JSONy:D $obj) returns Promise {
+    method fetch(Str $endpoint, JSONy:U $class, %data) returns Promise {
         start {
-            my $b = await (await self.get($endpoint)).body;
-            $obj.from-json($b);
+            my $b = await (await self.get($endpoint, %data)).body;
+            $class.from-json($b);
         }
     }
 
@@ -147,15 +147,12 @@ role HTTPResource is export {
         $rest.send($endpoint, self).then({ self if $^a.result });
     }
 
-    #| Given a self with an ID in it, goes and fetches the rest of it. Returns a
-    #| Promise. This will resolve to a copy of self; this may be fixed later to
-    #| fill in self.
-    multi method read(RESTy $rest) {
+    #| Returns a Promise that resolves to a constructed object of this type. Use
+    #| named parameters to pass in the data that the C<read> endpoint requires;
+    #| usually an ID. Finally, pass in a connected RESTy object.
+    multi method read(::?CLASS:U: %data, RESTy $rest, $api) {
         my $endpoint = endpoint-for(self, 'read');
-        start {
-            await $rest.fetch($endpoint, self);
-            self;
-        }
+        $rest.fetch($endpoint, self, %data);
     }
 
     #| Updates the resource. Must have an ID already. Returns a Promise for the

@@ -252,7 +252,7 @@ to the documented return value.
 
 #| See also get-message(s) on the Channel class.
 method get-message ($channel-id, $id) returns Promise {
-    Message.new(:$channel-id, :$id, :api(self)).read($!conn.rest);
+    Message.read({:$channel-id, :$id, _api => self}, $!conn.rest);
 }
 
 method get-messages ($channel-id, @message-ids) returns Promise {
@@ -269,7 +269,7 @@ method create-message (%params) returns Message {
 
 method get-channel ($id) returns Promise {
     start {
-        %.channels{$id} //= await Channel.new(id => $id, api => self).read($!conn.rest)
+        %.channels{$id} //= await Channel.read({id => $id, _api => self}, ($!conn.rest))
     }
 }
 
@@ -287,7 +287,7 @@ method create-channel (%params) returns Channel {
 
 method get-guild ($id) returns Promise {
     start {
-        %.guilds{$id} //= await Guild.new(id => $id, api => self).read($!conn.rest)
+        %.guilds{$id} //= await Guild.read({id => $id, _api => self}, $!conn.rest)
     }
 }
 
@@ -304,7 +304,7 @@ method create-guild (%params) returns Guild {
 }
 
 method get-user ($id) returns Promise {
-    User.new(id => $id, api => self).read($!conn.rest)
+    User.read(id => $id, _api => self, $!conn.rest)
 }
 
 method get-users (@user-ids) returns Promise {
