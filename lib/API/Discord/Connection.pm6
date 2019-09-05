@@ -183,7 +183,7 @@ method setup-heartbeat($interval) {
         note "« ♥";
         $!websocket.send({
             d => $!sequence,
-            op => OPCODE::heartbeat,
+            op => OPCODE::heartbeat.Int,
         });
 
         # Set up a timeout that will be kept if the ack promise isn't
@@ -213,7 +213,7 @@ method auth {
     if ($!session-id and $!sequence) {
         note "Resuming session $!session-id at sequence $!sequence";
         $!websocket.send({
-            op => OPCODE::resume,
+            op => OPCODE::resume.Int,
             d => {
                 token => $!token,
                 session_id => $!session-id,
@@ -226,11 +226,11 @@ method auth {
     # TODO: There is a gateway bot bootstrap endpoint that tells you things like
     # how many shards to use. We should investigate this
     $!websocket.send({
-        op => OPCODE::identify,
+        op => OPCODE::identify.Int,
         d => {
             token => $!token,
             properties => {
-                '$os' => $*PERL,
+                '$os' => $*PERL.Str,
                 '$browser' => 'API::Discord',
                 '$device' => 'API::Discord',
             },
