@@ -1,6 +1,7 @@
 use API::Discord::Exceptions;
 use API::Discord::WebSocket::Messages;
 use API::Discord::WebSocket;
+use API::Discord::Comms::BodySerialiser;
 
 unit class API::Discord::Connection;
 
@@ -78,7 +79,8 @@ submethod TWEAK {
             User-agent => "DiscordBot (https://github.io/shuppet/p6-api-discord, 0.0.1)",
             Accept => 'application/json, */*',
             Connection => 'keep-alive',
-        ]
+        ],
+        add-body-serializers => API::Discord::Comms::BodySerialiser.new
     )
     but RESTy[$!rest-url];
 }

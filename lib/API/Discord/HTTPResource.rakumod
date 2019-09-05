@@ -100,11 +100,11 @@ role RESTy[$base-url] is export {
         my $body = $object.to-json;
         if $object.can('id') and $object.id {
             say "PATCH $endpoint " ~ Dump $body if %*ENV<API_DISCORD_DEBUG>;
-            self.patch: $endpoint, :$body;
+            self.patch: $endpoint, body => $object;
         }
         else {
             say "POST $endpoint " ~ Dump $body if %*ENV<API_DISCORD_DEBUG>;
-            self.post: $endpoint, :$body;
+            self.post: $endpoint, body => $object;
         }
     }
 
