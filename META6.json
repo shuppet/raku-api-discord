@@ -30,7 +30,7 @@
   },
   "support": {
     "bugtracker": "https://github.com/shuppet/p6-api-discord/issues",
-    "source": "git@github.com:shuppet/p6-api-discord.git"
+    "source": "git@github.com/shuppet/p6-api-discord.git"
   },
   "license": "BSD-3-Clause",
   "source-url": "git@github.com/shuppet/p6-api-discord.git",
