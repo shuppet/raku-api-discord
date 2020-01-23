@@ -33,7 +33,7 @@
     "source": "git@github.com:shuppet/p6-api-discord.git"
   },
   "license": "BSD-3-Clause",
-  "source-url": "git@github.com:shuppet/p6-api-discord.git",
+  "source-url": "git@github.com/shuppet/p6-api-discord.git",
   "repo-type": "git",
   "source-type": "git"
 }
