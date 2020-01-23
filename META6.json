@@ -28,7 +28,12 @@
     "API::Discord::User": "lib/API/Discord/User.pm6",
     "X::API::Discord::Endpoint::NotEnoughArguments": "lib/API/Discord/Endpoints.pm6"
   },
+  "support": {
+    "bugtracker": "https://github.com/shuppet/p6-api-discord/issues",
+    "source": "git@github.com:shuppet/p6-api-discord.git"
+  },
   "license": "BSD-3-Clause",
   "source-url": "git@github.com:shuppet/p6-api-discord.git",
-  "repo-type": "git"
+  "repo-type": "git",
+  "source-type": "git"
 }
