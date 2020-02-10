@@ -173,6 +173,17 @@ method handle-opcode($json) {
             $!messages.emit($json);
         }
     }
+
+    given $message {
+        when .is-ready-event {
+            $!session-id = $payload<session_id>;
+            $!ready.keep;
+        }
+
+        when .opcode == OPCODE::dispatch {
+            $!messages.emit($_);
+        }
+    }
 }
 
 #| Produce a regular Supply. We have to wait to do this because Discord tells us

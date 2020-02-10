@@ -1,4 +1,5 @@
 use API::Discord::Endpoints;
+use API::Discord::Types;
 
 unit package API::Discord;
 
@@ -168,4 +169,39 @@ role HTTPResource is export {
         my $endpoint = endpoint-for(self, 'delete');
         $rest.remove($endpoint, self).then({ self if $^a.result });
     }
+}
+
+=begin pod
+
+=head1 API::Discord::HTTPMessage
+
+Represents the JSON objects we receive over the websocket, which wrap up one of
+the main object types. Abstracts away knowledge of this thing, and renames the
+poorly-named properties with accessors.
+
+=end pod
+
+class HTTPMessage {
+    has $!s;
+    has $!d;
+    has $!t;
+    has OPCODE $!op;
+
+    # TODO - an enum of events?
+    method event-name       {$!t}
+    method sequence-number  {$!s}
+    method payload          {$!d}
+    method opcode           {$!op}
+
+    method is-opcode(OPCODE $op) { $!op == $op }
+
+    method is-hello         { self.is-opcode(OPCODE::hello) }
+    method is-despatch      { self.is-opcode(OPCODE::dispatch) }
+    method is-reconnect     { self.is-opcode(OPCODE::reconnect) }
+    method is-heartbeat-ack { self.is-opcode(OPCODE::heartbeat-ack) }
+    method is-invalid-session
+                            { self.is-opcode(OPCODE::invalid-session) }
+    method is-dispatch      { self.is-opcode(OPCODE::dispatch) }
+
+    method is-ready-event   { self.is-despatch and self.event-name eq 'READY' }
 }
