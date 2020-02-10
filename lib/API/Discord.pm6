@@ -29,7 +29,8 @@ of messages and other events to which your app can listen.
 
     my $d = API::Discord.new(:token(my-bot-token));
 
-    await $d.connect;
+    $d.connect;
+    await $d.ready;
 
     react {
         whenever $d.messages -> $m {
