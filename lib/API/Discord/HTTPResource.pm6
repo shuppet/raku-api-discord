@@ -150,8 +150,8 @@ role HTTPResource is export {
     #| Returns a Promise that resolves to a constructed object of this type. Use
     #| named parameters to pass in the data that the C<read> endpoint requires;
     #| usually an ID. Finally, pass in a connected RESTy object.
-    multi method read(::?CLASS:U: %data, RESTy $rest, $api) {
-        my $endpoint = endpoint-for(self, 'read');
+    multi method read(::?CLASS:U: %data, RESTy $rest) {
+        my $endpoint = endpoint-for(self, 'read', |%data);
         $rest.fetch($endpoint, self, %data);
     }
 
