@@ -91,11 +91,15 @@ role RESTy[$base-url] is export {
         }
         # TODO: does anything generate data such that we need to re-fetch after
         # creation?
+        use Data::Dump;
+        my $body = $object.to-json;
         if $object.can('id') and $object.id {
-            self.put: $endpoint, body => $object.to-json;
+            say "PATCH $endpoint " ~ Dump $body;
+            self.patch: $endpoint, :$body;
         }
         else {
-            self.post: $endpoint, body => $object.to-json;
+            say "POST $endpoint " ~ Dump $body;
+            self.post: $endpoint, :$body;
         }
     }
 
