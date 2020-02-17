@@ -286,10 +286,8 @@ method create-message (%params) returns Message {
     Message.new(|%params, api => self);
 }
 
-method get-channel ($id) returns Promise {
-    start {
-        %.channels{$id} //= await Channel.read({id => $id, _api => self}, ($!conn.rest))
-    }
+method get-channel ($id) returns Channel {
+    %.channels{$id} //= Channel.new( id => $id, api => self );
 }
 
 method get-channels (@channel-ids) returns Promise {
