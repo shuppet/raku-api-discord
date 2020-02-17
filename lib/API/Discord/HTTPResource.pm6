@@ -143,7 +143,7 @@ necessary that the class consuming HTTPResource also consumes JSONy.
 role HTTPResource is export {
     #| Upload self, given a RESTy client. Returns a Promise that resolves to
     #| self. Not all resources can be created.
-    multi method create(RESTy $rest) {
+    method create(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'create');
         $rest.send($endpoint, self).then({ self if $^a.result });
     }
@@ -151,8 +151,8 @@ role HTTPResource is export {
     #| Returns a Promise that resolves to a constructed object of this type. Use
     #| named parameters to pass in the data that the C<read> endpoint requires;
     #| usually an ID. Finally, pass in a connected RESTy object.
-    multi method read(::?CLASS:U: %data, RESTy $rest) {
-        my $endpoint = endpoint-for(self, 'read', |%data);
+    method read(::?CLASS:U: %data, RESTy $rest) {
+        my $endpoint = endpoint-for(self.resource, 'read', |%data);
         $rest.fetch($endpoint, self, %data);
     }
 
@@ -165,7 +165,7 @@ role HTTPResource is export {
 
     #| Deletes the resource. Must have an ID already. Not all resources can be
     #| deleted. Returns a Promise.
-    multi method delete(RESTy $rest) {
+    method delete(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'delete');
         $rest.remove($endpoint, self).then({ self if $^a.result });
     }

@@ -74,14 +74,14 @@ because we already have them.
 #| A handle on the API::Discord object that made this
 has $.api;
 
-multi method create ($rest) { self.HTTPResource::create($rest) }
-multi method create { self.create($.api.rest) }
-
-multi method read ($rest) { self.HTTPResource::read($rest) }
-multi method read { self.read($.api.rest) }
-
-multi method update ($rest) { self.HTTPResource::update($rest) }
-multi method update { self.update($.api.rest) }
-
-multi method delete ($rest) { self.HTTPResource::delete($rest) }
-multi method delete { self.delete($.api.rest) }
+#multi method create ($rest) { self.HTTPResource::create($rest) }
+#multi method create { self.create($.api.rest) }
+#
+#multi method read ($rest) { self.HTTPResource::read($rest) }
+#multi method read { self.read($.api.rest) }
+#
+#multi method update ($rest) { self.HTTPResource::update($rest) }
+multi method update { say self ~ " " ~ $.name; self.update($.api.rest) }
+#
+#multi method delete ($rest) { self.HTTPResource::delete($rest) }
+#multi method delete { self.delete($.api.rest) }
