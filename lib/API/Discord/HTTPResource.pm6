@@ -29,7 +29,8 @@ produced by RESTy.
 role JSONy is export {
     #| Builds the object from a hash. The hash is made from the JSON, courtesy
     #| of Cro.
-    method from-json ($json) returns ::?CLASS { ... }
+    method from-json (::?CLASS:U: $json) { ...  }
+
     #| Turns the object into a hash. from-json(to-json($object)) should return
     #| the same object (or at least an equivalent copy).
     method to-json returns Hash { ... }
