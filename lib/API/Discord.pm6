@@ -167,6 +167,9 @@ has %.channels;
 #| A hash of Guild objects that the user is a member of, keyed by the Guild ID. B<TODO> Currently this is not populated.
 has %.guilds;
 
+# Kept when all guild IDs we expect to receive have been received. TODO: timeout
+has Promise $!guilds-ready = Promise.new;
+
 method !start-message-tap {
     $!conn.messages.tap( -> $message {
         self!handle-message($message);
@@ -181,10 +184,23 @@ method !start-message-tap {
 }
 
 method !handle-message($message) {
-    if $message<d><channels> {
-        for $message<d><channels>.values -> $c {
+    # TODO - send me an object please
+    if $message<t> eq 'GUILD_CREATE' {
+        for $message<d><channels><> -> $c {
             $c<guild_id> = $message<d><id>;
-            %.channels{$c<id>} = self.inflate-channel($c);
+            my $id = $c<id>;
+            my $chan = Channel.new( id => $id, api => self, real => Channel.reify( $c, self ) );
+            %.channels{$id} = $chan;
+        }
+
+        # TODO: guild object
+        %.guilds{$message<d><id>} = True;
+
+        # TODO: We might never get all of the guilds in the READY event. Set up
+        # a timeout to keep it.
+        if [&&] map *.defined, %.guilds.values {
+            say "All guilds ready!";
+            $!guilds-ready.keep;
         }
     }
     elsif $message<t> eq 'READY' {
@@ -193,6 +209,9 @@ method !handle-message($message) {
             id => '@me',
             real-id => $message<d><user><id>
         ));
+
+        # Initialise empty objects for later.
+        %.guilds{$_<id>} = Any for $message<d><guilds><>;
     }
 }
 
@@ -217,7 +236,7 @@ method connect($session-id?, $sequence?) returns Promise {
 #| Proxies the READY promise on connection. Await this before communicating with
 #discord.
 method ready returns Promise {
-    $!conn.ready;
+    Promise.allof($!conn.ready, $!guilds-ready);
 }
 
 #| Emits a Message object whenever a message is received. B<TODO> Currently this emits hashes.
