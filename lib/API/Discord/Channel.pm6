@@ -30,14 +30,6 @@ class ButReal does API::Discord::Object {
     has @.permission-overwrites;
     has @.messages;
 
-    has Promise $!fetch-message-promise;
-    has Promise $!fetch-pins-promise;
-
-    submethod TWEAK() {
-        # Seed the promise for fetch-messages to chain from
-        $!fetch-message-promise = start {};
-    }
-
     method resource { API::Discord::Channel }
 
 
@@ -111,6 +103,14 @@ multi method reify (::?CLASS:U: $data, $api) {
 multi method reify (::?CLASS:D: $data) {
     my $r = ButReal.new(|%$data, api => $.api);
     $!real = $r;
+}
+
+has Promise $!fetch-message-promise;
+has Promise $!fetch-pins-promise;
+
+submethod TWEAK() {
+    # Seed the promise for fetch-messages to chain from
+    $!fetch-message-promise = start {};
 }
 
 method guild(:$now) {
