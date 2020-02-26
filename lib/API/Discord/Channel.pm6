@@ -40,90 +40,6 @@ class ButReal does API::Discord::Object {
 
     method resource { API::Discord::Channel }
 
-    method guild(:$now) {
-        return $now ?? (await $_) !! $_ given $.api.get-guild($.guild-id);
-    }
-
-    #| Fetch N messages and returns a Promise that resolves to the complete new list
-    #| of messages. If something is already fetching messages, your call will await
-    #| those before making its own call on top of them.
-    #| TODO: maybe only fetch enough extra messages after that one?
-    method fetch-messages(Int $how-many) returns Promise {
-        $!fetch-message-promise = $!fetch-message-promise.then: {
-            my $get = 'get-messages';
-            if @.messages {
-                $get ~= '?after=' ~ @.messages[*-1].id;
-            }
-            my $e = endpoint-for(self, $get);
-            my $p = await $.api.rest.get($e);
-
-            @.messages.append: (await $p.body).map: { $.api.inflate-message($_) };
-            @.messages;
-        };
-    }
-
-    #| Returns all pinned messages at once, in a Promise
-    method pinned-messages($force?) returns Promise {
-        if $force or not $!fetch-pins-promise {
-            $!fetch-pins-promise = start {
-                my @pins;
-                my $e = endpoint-for( self, 'pinned-messages' ) ;
-                my $p = await $.api.rest.get($e);
-                @pins = (await $p.body).map( { $!api.inflate-message($_) } );
-                @pins;
-            }
-        }
-
-        $!fetch-pins-promise;
-    }
-
-    #| Sends a message to the channel and returns the POST promise.
-    multi method send-message($content) {
-        self.send-message(:$content)
-    }
-
-    multi method send-message(:$embed, :$content) {
-        # FIXME: proper exception
-        die "Provide at least one of embed or content"
-            unless $embed or $content;
-
-        $.api.create-message({
-            channel-id => $.id,
-          |(:$embed if $embed),
-          |(:$content if $content)
-        }).create;
-    }
-
-    method pin($message) returns Promise {
-        $.api.rest.touch(endpoint-for(self, 'pinned-message', message-id => $message.id));
-    }
-
-    method unpin($message) returns Promise {
-        $.api.rest.remove(endpoint-for(self, 'pinned-message', message-id => $message.id));
-    }
-
-    #| Shows the "user is typing..." message to everyone in the channel. Disappears
-    #| after ~10 seconds or when a message is sent.
-    method trigger-typing {
-        # TODO: Handle error
-        $.api.rest.post(endpoint-for(self, 'trigger-typing'), :body(''));
-    }
-
-    #| Deletes these messages. Max 100, minimum 2. If any message does not belong to
-    #| this channel, the whole operation fails. Returns a promise that resolves to
-    #| the new message array.
-    method bulk-delete(@messages) {
-        start {
-            # TODO: I don't think we're handling a failure from this correctly
-            await $.api.rest.post(endpoint-for(self, 'bulk-delete-messages'), body => {messages => [@messages.map: *.id]});
-
-            my %antipairs{Any} = @!messages.antipairs;
-            my @removed-idxs = %antipairs{@messages};
-            my \to-remove = set(@removed-idxs);
-            my @keep = @!messages.keys.grep(none(to-remove));
-            @!messages = @!messages[@keep];
-        }
-    }
 
     method to-json {
         # We're only allowed to update a subset of the fields we receive.
@@ -195,6 +111,91 @@ multi method reify (::?CLASS:U: $data, $api) {
 multi method reify (::?CLASS:D: $data) {
     my $r = ButReal.new(|%$data, api => $.api);
     $!real = $r;
+}
+
+method guild(:$now) {
+    return $now ?? (await $_) !! $_ given $.api.get-guild($.guild-id);
+}
+
+#| Fetch N messages and returns a Promise that resolves to the complete new list
+#| of messages. If something is already fetching messages, your call will await
+#| those before making its own call on top of them.
+#| TODO: maybe only fetch enough extra messages after that one?
+method fetch-messages(Int $how-many) returns Promise {
+    $!fetch-message-promise = $!fetch-message-promise.then: {
+        my $get = 'get-messages';
+        if @.messages {
+            $get ~= '?after=' ~ @.messages[*-1].id;
+        }
+        my $e = endpoint-for(self, $get);
+        my $p = await $.api.rest.get($e);
+
+        @.messages.append: (await $p.body).map: { $.api.inflate-message($_) };
+        @.messages;
+    };
+}
+
+#| Returns all pinned messages at once, in a Promise
+method pinned-messages($force?) returns Promise {
+    if $force or not $!fetch-pins-promise {
+        $!fetch-pins-promise = start {
+            my @pins;
+            my $e = endpoint-for( self, 'pinned-messages' ) ;
+            my $p = await $.api.rest.get($e);
+            @pins = (await $p.body).map( { $!api.inflate-message($_) } );
+            @pins;
+        }
+    }
+
+    $!fetch-pins-promise;
+}
+
+#| Sends a message to the channel and returns the POST promise.
+multi method send-message($content) {
+    self.send-message(:$content)
+}
+
+multi method send-message(:$embed, :$content) {
+    # FIXME: proper exception
+    die "Provide at least one of embed or content"
+        unless $embed or $content;
+
+    $.api.create-message({
+        channel-id => $.id,
+      |(:$embed if $embed),
+      |(:$content if $content)
+    }).create;
+}
+
+method pin($message) returns Promise {
+    $.api.rest.touch(endpoint-for(self, 'pinned-message', message-id => $message.id));
+}
+
+method unpin($message) returns Promise {
+    $.api.rest.remove(endpoint-for(self, 'pinned-message', message-id => $message.id));
+}
+
+#| Shows the "user is typing..." message to everyone in the channel. Disappears
+#| after ~10 seconds or when a message is sent.
+method trigger-typing {
+    # TODO: Handle error
+    $.api.rest.post(endpoint-for(self, 'trigger-typing'), :body(''));
+}
+
+#| Deletes these messages. Max 100, minimum 2. If any message does not belong to
+#| this channel, the whole operation fails. Returns a promise that resolves to
+#| the new message array.
+method bulk-delete(@messages) {
+    start {
+        # TODO: I don't think we're handling a failure from this correctly
+        await $.api.rest.post(endpoint-for(self, 'bulk-delete-messages'), body => {messages => [@messages.map: *.id]});
+
+        my %antipairs{Any} = @!messages.antipairs;
+        my @removed-idxs = %antipairs{@messages};
+        my \to-remove = set(@removed-idxs);
+        my @keep = @!messages.keys.grep(none(to-remove));
+        @!messages = @!messages[@keep];
+    }
 }
 
 =begin pod
