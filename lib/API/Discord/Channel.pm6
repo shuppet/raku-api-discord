@@ -28,7 +28,6 @@ class ButReal does API::Discord::Object {
     has $.owner;
     has @.recipients;
     has @.permission-overwrites;
-    has @.messages;
 
     method resource { API::Discord::Channel }
 
@@ -87,7 +86,6 @@ has $.real handles <
     owner
     recipients
     permission-overwrites
-    messages
 
     create
     read
@@ -105,6 +103,7 @@ multi method reify (::?CLASS:D: $data) {
     $!real = $r;
 }
 
+has @.messages;
 has Promise $!fetch-message-promise;
 has Promise $!fetch-pins-promise;
 
