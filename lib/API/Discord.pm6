@@ -274,12 +274,12 @@ to the documented return value.
 =end pod
 
 #| See also get-message(s) on the Channel class.
-method get-message ($channel-id, $id) returns Promise {
-    Message.read({:$channel-id, :$id, _api => self}, $!conn.rest);
+method get-message (Any:D $channel-id, Any:D $id) returns Message {
+    Message.new(:$channel-id, :$id, _api => self);
 }
 
-method get-messages ($channel-id, @message-ids) returns Promise {
-    Promise.allof( @message-ids.map: self.get-message($channel-id, *) );
+method get-messages (Any:D $channel-id, Any:D @message-ids) returns Array {
+    @message-ids.map: self.get-message($channel-id, *);
 }
 
 method inflate-message (%json) returns Message {
@@ -294,11 +294,11 @@ method create-message (%params) returns Message {
     Message.new(|%params, api => self);
 }
 
-method get-channel ($id) returns Channel {
+method get-channel (Any:D $id) returns Channel {
     %.channels{$id} //= Channel.new( id => $id, api => self );
 }
 
-method get-channels (@channel-ids) returns Promise {
+method get-channels (Any:D @channel-ids) returns Promise {
     Promise.allof( @channel-ids.map: self.get-channel(*) );
 }
 
@@ -310,13 +310,13 @@ method create-channel (%params) returns Channel {
     Channel.new(|%params, api => self);
 }
 
-method get-guild ($id) returns Promise {
+method get-guild (Any:D $id) returns Promise {
     start {
         %.guilds{$id} //= await Guild.read({id => $id, _api => self}, $!conn.rest)
     }
 }
 
-method get-guilds (@guild-ids) returns Promise {
+method get-guilds (Any:D @guild-ids) returns Promise {
     Promise.allof( @guild-ids.map: self.get-guild(*) );
 }
 
@@ -328,11 +328,11 @@ method create-guild (%params) returns Guild {
     Guild.new(|%params, api => self);
 }
 
-method get-user ($id) returns Promise {
+method get-user (Any:D $id) returns Promise {
     User.read(id => $id, _api => self, $!conn.rest)
 }
 
-method get-users (@user-ids) returns Promise {
+method get-users (Any:D @user-ids) returns Promise {
     Promise.allof( @user-ids.map: self.get-user(*) );
 }
 
