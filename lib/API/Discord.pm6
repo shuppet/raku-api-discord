@@ -174,7 +174,12 @@ method !start-message-tap {
     $!conn.messages.tap( -> $message {
         self!handle-message($message);
         if $message<t> eq 'MESSAGE_CREATE' {
-            $!messages.emit(self.inflate-message($message<d>))
+            CATCH { .say }
+            my $m = Message.new( id => $message<d><id>, api => self, real => Message.reify( $message<d>, self ) );
+            $m.say;
+            say $message<d><author><id> == $.user.real-id;
+
+            $!messages.emit($m)
                 unless $message<d><author><id> == $.user.real-id;
         }
         else {
@@ -279,7 +284,11 @@ method get-messages ($channel-id, @message-ids) returns Promise {
 }
 
 method inflate-message (%json) returns Message {
-    Message.from-json(%(|%json, _api => self));
+    Message.new(
+        api => self,
+        id => %json<id>,
+        real => Message.reify( %json, self )
+    );
 }
 
 method create-message (%params) returns Message {
