@@ -171,10 +171,9 @@ has %.guilds;
 has Promise $!guilds-ready = Promise.new;
 
 method !start-message-tap {
-    $!conn.messages.tap( -> $message {
+    start react whenever $!conn.messages -> $message {
         self!handle-message($message);
         if $message<t> eq 'MESSAGE_CREATE' {
-            CATCH { .say }
             my $m = Message.new( id => $message<d><id>, api => self, real => Message.reify( $message<d>, self ) );
             $m.say;
             say $message<d><author><id> == $.user.real-id;
@@ -185,7 +184,7 @@ method !start-message-tap {
         else {
             $!events.emit($message);
         }
-    })
+    }
 }
 
 method !handle-message($message) {
