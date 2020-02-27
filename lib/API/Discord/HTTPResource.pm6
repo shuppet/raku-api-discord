@@ -156,7 +156,7 @@ role HTTPResource is export {
     #| named parameters to pass in the data that the C<read> endpoint requires;
     #| usually an ID. Finally, pass in a connected RESTy object.
     method read(::?CLASS:U: %data, RESTy $rest) {
-        my $endpoint = endpoint-for(self.resource, 'read', |%data);
+        my $endpoint = endpoint-for(self, 'read', |%data);
         $rest.fetch($endpoint, self, %data);
     }
 

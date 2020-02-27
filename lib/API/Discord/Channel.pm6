@@ -29,9 +29,6 @@ class ButReal does API::Discord::Object {
     has @.recipients;
     has @.permission-overwrites;
 
-    method resource { API::Discord::Channel }
-
-
     method to-json {
         # We're only allowed to update a subset of the fields we receive.
         my %self := self.Capture.hash;
