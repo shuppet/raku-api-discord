@@ -6,8 +6,9 @@ use Object::Delayed;
 
 class ButReal does API::Discord::Object {
     has $.id;
-    has $.author-id;
     has $.channel-id;
+
+    has $.author-id;
     has $.nonce;
     has $.content;
     has $.is-tts;
@@ -38,17 +39,13 @@ class ButReal does API::Discord::Object {
         %constructor<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids embeds>
             = %json<channel_id tts mention_everyone pinned webhook_id mention_roles embeds>;
 
-        # These keys we can trivially inflate.
-        %constructor<timestamp> = DateTime.new(%json<timestamp>);
-        %constructor<edited> = DateTime.new($_) with %json<edited_timestamp>;
-
         # Just store the ID. If we want the real author we can fetch it later. I
         # can't be bothered stitching this sort of thing together just to save a
         # few bytes.
         if ! %json<webhook_id> {
-            %constructor<author-id> = $api.inflate-user(%json<author><id>);
+            %constructor<author-id> = $api.get-user(%json<author><id>);
         }
-        %constructor<mentions> = %json<mentions>.map( {$api.inflate-user($_)} ).Array;
+        %constructor<mentions> = %json<mentions>.map( {$api.get-user($_)} ).Array;
 
     #    %constructor<attachments> = $json<attachments>.map: self.create-attachment($_);
     #    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
@@ -119,12 +116,12 @@ enum Type (
 
 =head1 PROPERTIES
 
-
+# Both id and channel id are required to fetch a message.
 has $.id;
+has $.channel-id;
 has $.api;
 has $.real handles <
     author-id
-    channel-id
     nonce
     content
     is-tts
@@ -136,14 +133,19 @@ has $.real handles <
     type
     timestamp
     edited
-> = slack { await API::Discord::Message::ButReal.read({id => $!id, api => $!api}, $!api.rest) };
+
+    create
+    read
+    update
+    delete
+> = slack { await API::Discord::Message::ButReal.read({:$!channel-id, :$!id, :$!api}, $!api.rest) };
 
 multi method reify (::?CLASS:U: $data, $api) {
-    ButReal.new(|%$data, :$api);
+    ButReal.from-json(%(|$data, _api => $api));
 }
 
 multi method reify (::?CLASS:D: $data) {
-    my $r = ButReal.new(|%$data, api => $.api);
+    my $r = ButReal.from-json(%(|$data, _api => $.api));
     $!real = $r;
 }
 
@@ -163,15 +165,13 @@ has @.reactions;
 #has API::Discord::Application $.application;
 
 method addressed returns Bool {
-    @.mentions.first({ $.api.user.real-id == $_.real-id }).Bool
+    self.mentions.first({ $.api.user.real-id == $_.real-id }).Bool
 }
 
-#| Returns a Promise that resolves to the channel, or awaits the channel for you
-#| if you use C<:now>.
-method channel(:$now) {
-    return $now ?? (await $_) !! $_ given $.api.get-channel($.channel-id);
+#| Asks the API for the Channel object.
+method channel {
+    $.api.get-channel(self.channel-id);
 }
-
 
 method add-reaction(Str $e is copy) {
     $e = uri_encode_component($e) unless $e ~~ /\:/;
