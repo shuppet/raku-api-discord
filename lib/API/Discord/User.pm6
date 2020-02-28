@@ -75,6 +75,16 @@ has $.real handles <
     locale
 > = slack { await API::Discord::User::ButReal.read({:$!id, :$!api}, $!api.rest) };
 
+multi method reify (::?CLASS:U: $data, $api) {
+    ButReal.new(|%$data, :$api);
+}
+
+multi method reify (::?CLASS:D: $data) {
+    my $r = ButReal.new(|%$data, api => $.api);
+    $!real = $r;
+}
+
+
 submethod TWEAK() {
     $!real-id //= $!id;
 }
