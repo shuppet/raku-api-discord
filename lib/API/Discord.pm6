@@ -174,9 +174,7 @@ method !start-message-tap {
     start react whenever $!conn.messages -> $message {
         self!handle-message($message);
         if $message<t> eq 'MESSAGE_CREATE' {
-            my $m = Message.new( id => $message<d><id>, api => self, real => Message.reify( $message<d>, self ) );
-            $m.say;
-            say $message<d><author><id> == $.user.real-id;
+            my $m = self.inflate-message($message<d>);
 
             $!messages.emit($m)
                 unless $message<d><author><id> == $.user.real-id;
@@ -286,12 +284,16 @@ method inflate-message (%json) returns Message {
     Message.new(
         api => self,
         id => %json<id>,
-        real => Message.reify( %json, self )
+        channel-id => %json<channel_id>,
+        real => Message.reify( %json )
     );
 }
 
 method create-message (%params) returns Message {
-    Message.new(|%params, api => self);
+    Message.new(
+        api => self,
+        |%params
+    );
 }
 
 method get-channel (Any:D $id) returns Channel {
@@ -335,7 +337,7 @@ method create-guild (%params) returns Guild {
 }
 
 method get-user (Any:D $id) returns User {
-    User.new(id => $id, _api => self);
+    User.new(id => $id, api => self);
 }
 
 method get-users (Any:D @user-ids) returns Array {
