@@ -23,17 +23,16 @@ class ButReal does API::Discord::Object {
     has DateTime $.timestamp;
     has DateTime $.edited;
 
-    submethod new(*%args) {
-        %args<timestamp> = DateTime.new(%args<timestamp>);
+    method new(*%args is copy) {
+        %args<timestamp> = DateTime.new($_) with %args<timestamp>;
         %args<edited> = DateTime.new($_) with %args<edited>;
 
         self.bless(|%args);
     }
 
     method from-json (%json) returns ::?CLASS {
-        my $api = %json<_api>;
         # These keys we can lift straight out
-        my %constructor = %json<id nonce content type>:kv;
+        my %constructor = %json<id nonce content type timestamp edited>:kv;
 
         # These keys we sanitized for nice Perl6 people
         %constructor<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids embeds>
@@ -43,14 +42,13 @@ class ButReal does API::Discord::Object {
         # can't be bothered stitching this sort of thing together just to save a
         # few bytes.
         if ! %json<webhook_id> {
-            %constructor<author-id> = $api.get-user(%json<author><id>);
+            %constructor<author-id> = %json<author><id>;
         }
-        %constructor<mentions> = %json<mentions>.map( {$api.get-user($_)} ).Array;
+        %constructor<mentions> = %json<mentions>.map(*<id>).Array;
 
     #    %constructor<attachments> = $json<attachments>.map: self.create-attachment($_);
     #    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
 
-        %constructor<api> = $api;
         return self.new(|%constructor.Map);
     }
 
@@ -63,8 +61,8 @@ class ButReal does API::Discord::Object {
         # Can't send blank content but we might have embed with no content
         %json<content> = $_ with %self<content>;
 
-        %json<channel_id tts mention_everyone pinned webhook_id mention_roles embed>
-            = %self<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids embed>;
+        %json<tts mention_everyone pinned webhook_id mention_roles embed>
+            = %self<is-tts mentions-everyone is-pinned webhook-id mentions-role-ids embed>;
 
         # I kinda don't want to update this I think
         # $.author andthen %json<author> = .to-json;
@@ -117,9 +115,10 @@ enum Type (
 =head1 PROPERTIES
 
 # Both id and channel id are required to fetch a message.
+# id is not 'is required' because a new message doesn't have one
 has $.id;
-has $.channel-id;
-has $.api;
+has $.channel-id is required;
+has $.api is required;
 has $.real handles <
     author-id
     nonce
@@ -140,12 +139,26 @@ has $.real handles <
     delete
 > = slack { await API::Discord::Message::ButReal.read({:$!channel-id, :$!id, :$!api}, $!api.rest) };
 
-multi method reify (::?CLASS:U: $data, $api) {
-    ButReal.from-json(%(|$data, _api => $api));
+submethod BUILD (:$!id, :$!channel-id, :$!api, :$!real, *%real-properties is copy) {
+    if $!real and %real-properties {
+        die "Provided a real object, but also properties to make one!"
+    }
+
+    if (%real-properties) {
+        %real-properties<channel-id> = $!channel-id;
+
+        # Leave it unset if nothing else is provided (or it was already provided),
+        # so it constructs itself
+        $!real = ButReal.new(|%real-properties);
+    }
+}
+
+multi method reify (::?CLASS:U: $data) {
+    ButReal.from-json($data);
 }
 
 multi method reify (::?CLASS:D: $data) {
-    my $r = ButReal.from-json(%(|$data, _api => $.api));
+    my $r = ButReal.from-json($data);
     $!real = $r;
 }
 
@@ -170,7 +183,7 @@ method addressed returns Bool {
 
 #| Asks the API for the Channel object.
 method channel {
-    $.api.get-channel(self.channel-id);
+    $.api.get-channel($.channel-id);
 }
 
 method add-reaction(Str $e is copy) {
