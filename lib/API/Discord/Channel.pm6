@@ -160,7 +160,7 @@ multi method send-message(:$embed, :$content) {
         channel-id => $.id,
       |(:$embed if $embed),
       |(:$content if $content)
-    }).create;
+    }).create($.api.rest);
 }
 
 method pin($message) returns Promise {
