@@ -5,11 +5,12 @@ use API::Discord;
 sub MAIN($token) {
     my $discord = API::Discord.new(:$token);
 
-    await $discord.connect;
+    $discord.connect;
+    await $discord.ready;
 
     react {
         whenever $discord.messages -> $message {
-            (await $message.channel).send-message($message.content)
+            $message.channel.send-message($message.content);
         }
     }
 }
