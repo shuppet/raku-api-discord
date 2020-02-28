@@ -94,11 +94,11 @@ role RESTy[$base-url] is export {
         use Data::Dump;
         my $body = $object.to-json;
         if $object.can('id') and $object.id {
-            say "PATCH $endpoint " ~ Dump $body;
+            say "PATCH $endpoint " ~ Dump $body if %*ENV<API_DISCORD_DEBUG>;
             self.patch: $endpoint, :$body;
         }
         else {
-            say "POST $endpoint " ~ Dump $body;
+            say "POST $endpoint " ~ Dump $body if %*ENV<API_DISCORD_DEBUG>;
             self.post: $endpoint, :$body;
         }
     }
