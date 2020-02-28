@@ -328,7 +328,7 @@ method inflate-guild (%json) returns Guild {
     Guild.new(
         api => self,
         id => %json<id>,
-        real => Guild.reify( %json, self )
+        real => Guild.reify( %json )
     );
 }
 
