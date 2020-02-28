@@ -298,52 +298,64 @@ method get-channel (Any:D $id) returns Channel {
     %.channels{$id} //= Channel.new( id => $id, api => self );
 }
 
-method get-channels (Any:D @channel-ids) returns Promise {
-    Promise.allof( @channel-ids.map: self.get-channel(*) );
+method get-channels (Any:D @channel-ids) returns Array {
+    @channel-ids.map: self.get-channel(*);
 }
 
 method inflate-channel (%json) returns Channel {
-    Channel.from-json(%(|%json, _api => self));
+    Channel.new(
+        api => self,
+        id => %json<id>,
+        real => Channel.reify( %json, self )
+    );
 }
 
 method create-channel (%params) returns Channel {
     Channel.new(|%params, api => self);
 }
 
-method get-guild (Any:D $id) returns Promise {
-    start {
-        %.guilds{$id} //= await Guild.read({id => $id, _api => self}, $!conn.rest)
-    }
+method get-guild (Any:D $id) returns Guild {
+    %.guilds{$id} //= Guild.new(id => $id, _api => self)
 }
 
-method get-guilds (Any:D @guild-ids) returns Promise {
-    Promise.allof( @guild-ids.map: self.get-guild(*) );
+method get-guilds (Any:D @guild-ids) returns Array {
+    @guild-ids.map: self.get-guild(*);
 }
 
 method inflate-guild (%json) returns Guild {
-    Guild.from-json(%(|%json, _api => self));
+    Guild.new(
+        api => self,
+        id => %json<id>,
+        real => Guild.reify( %json, self )
+    );
 }
 
 method create-guild (%params) returns Guild {
     Guild.new(|%params, api => self);
 }
 
-method get-user (Any:D $id) returns Promise {
-    User.read(id => $id, _api => self, $!conn.rest)
+method get-user (Any:D $id) returns User {
+    User.new(id => $id, _api => self);
 }
 
-method get-users (Any:D @user-ids) returns Promise {
-    Promise.allof( @user-ids.map: self.get-user(*) );
+method get-users (Any:D @user-ids) returns Array {
+    @user-ids.map: self.get-user(*);
 }
 
 method inflate-user (%json) returns User {
-    User.from-json(%(|%json, _api => self));
+    User.new(
+        api => self,
+        id => %json<id>,
+        real-id => %json<real-id>,
+        real => User.reify( %json, self )
+    );
 }
 
 method create-user (%params) returns User {
     User.new(|%params, api => self);
 }
 
+# TODO
 method inflate-member(%json) returns Guild::Member {
     Guild::Member.from-json(%(|%json, _api => self));
 }
