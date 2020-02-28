@@ -61,7 +61,7 @@ class ButReal does API::Discord::Object {
 
 
 has $.id;
-has $.api;
+has $.api is required;
 has $.real handles <
     type
     guild-id

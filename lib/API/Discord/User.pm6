@@ -61,8 +61,8 @@ has Promise $!guilds-promise;
 #| Use real-id if you want to compare the user's numeric ID. This lets us put
 #| '@me' in id itself, for endpoints
 has $.real-id;
-has $.id;
-has $.api;
+has $.id is required;
+has $.api is required;
 has $.real handles <
     username
     discriminator
