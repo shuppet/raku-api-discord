@@ -109,8 +109,8 @@ submethod TWEAK() {
     $!fetch-message-promise = start {};
 }
 
-method guild(:$now) {
-    return $now ?? (await $_) !! $_ given $.api.get-guild($.guild-id);
+method guild {
+    $.api.get-guild($.guild-id);
 }
 
 #| Fetch N messages and returns a Promise that resolves to the complete new list
