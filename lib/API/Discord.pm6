@@ -196,7 +196,7 @@ method !handle-message($message) {
         }
 
         # TODO: guild object
-        %.guilds{$message<d><id>} = True;
+        %.guilds{$message<d><id>} = self.inflate-guild($message<d>);
 
         # TODO: We might never get all of the guilds in the READY event. Set up
         # a timeout to keep it.
