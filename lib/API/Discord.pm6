@@ -195,7 +195,6 @@ method !handle-message($message) {
             %.channels{$id} = $chan;
         }
 
-        # TODO: guild object
         %.guilds{$message<d><id>} = self.inflate-guild($message<d>);
 
         # TODO: We might never get all of the guilds in the READY event. Set up
