@@ -42,7 +42,7 @@ class ButReal does API::Discord::Object {
     }
 
     method from-json(::?CLASS:U: $json) {
-        my %constructor = $json<position bitrate name topic icon api>:kv;
+        my %constructor = $json<id position bitrate name topic icon api>:kv;
         #%constructor<type> = ChannelType($json<type>.Int);
         %constructor<
             guild-id last-message-id rate-limit-per-user
@@ -92,11 +92,11 @@ has $.real handles <
 
 # Channel.new( id => $id, api => self, real => Channel.reify($hash) );
 multi method reify (::?CLASS:U: $data, $api) {
-    ButReal.new(|%$data, :$api);
+    ButReal.from-json($data);
 }
 
 multi method reify (::?CLASS:D: $data) {
-    my $r = ButReal.new(|%$data, api => $.api);
+    my $r = ButReal.from-json($data);
     $!real = $r;
 }
 
