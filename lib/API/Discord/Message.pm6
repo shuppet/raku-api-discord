@@ -37,10 +37,8 @@ class ButReal does API::Discord::Object {
     }
 
     method from-json (%json) returns ::?CLASS {
-        # These keys we can lift straight out
         my %constructor = %json<id nonce content type timestamp edited>:kv;
 
-        # These keys we sanitized for nice Perl6 people
         %constructor<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids embeds>
             = %json<channel_id tts mention_everyone pinned webhook_id mention_roles embeds>;
 
@@ -117,8 +115,6 @@ class Reaction does API::Discord::Object {
 enum Type (
     <default recipient-add>
 );
-
-=head1 PROPERTIES
 
 # Both id and channel id are required to fetch a message.
 # id is not 'is required' because a new message doesn't have one
