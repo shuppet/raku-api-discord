@@ -149,7 +149,7 @@ role HTTPResource is export {
     #| self. Not all resources can be created.
     method create(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'create');
-        $rest.send($endpoint, self).then({ self if $^a.result });
+        $rest.send($endpoint, self);
     }
 
     #| Returns a Promise that resolves to a constructed object of this type. Use
