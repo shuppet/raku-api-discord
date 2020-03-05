@@ -15,9 +15,15 @@ class ButReal does API::Discord::Object {
     has $.mentions-everyone;
     has $.is-pinned;
     has $.webhook-id;
+    has $.type;
+
     has @.mentions-role-ids;
     has @.mentions;
-    has $.type;
+
+    # GET a message and receive embeds plural. SEND a message and you can only send
+    # one. I do not know at this point how you can create multiple embeds.
+    has @.embeds;
+    has $.embed;
 
     # Coercions here are not yet implemented
     has DateTime $.timestamp;
@@ -165,10 +171,7 @@ multi method reify (::?CLASS:D: $data) {
 has $.author;
 has @.mentions-roles; # will lazy { ... }
 has @.attachments;
-# GET a message and receive embeds plural. SEND a message and you can only send
-# one. I do not know at this point how you can create multiple embeds.
-has @.embeds;
-has $.embed;
+
 # TODO: perhaps this should be emoji => count and we don't need the Reaction class.
 # (We can use Emoji objects as the keys if we want)
 has @.reactions;
