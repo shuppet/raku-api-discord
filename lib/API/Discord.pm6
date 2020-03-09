@@ -167,24 +167,41 @@ has %.channels;
 #| A hash of Guild objects that the user is a member of, keyed by the Guild ID. B<TODO> Currently this is not populated.
 has %.guilds;
 
+# Kept when all guild IDs we expect to receive have been received. TODO: timeout
+has Promise $!guilds-ready = Promise.new;
+
 method !start-message-tap {
-    $!conn.messages.tap( -> $message {
+    start react whenever $!conn.messages -> $message {
         self!handle-message($message);
         if $message<t> eq 'MESSAGE_CREATE' {
-            $!messages.emit(self.inflate-message($message<d>))
+            my $m = self.inflate-message($message<d>);
+
+            $!messages.emit($m)
                 unless $message<d><author><id> == $.user.real-id;
         }
         else {
             $!events.emit($message);
         }
-    })
+    }
 }
 
 method !handle-message($message) {
-    if $message<d><channels> {
-        for $message<d><channels>.values -> $c {
+    # TODO - send me an object please
+    if $message<t> eq 'GUILD_CREATE' {
+        for $message<d><channels><> -> $c {
             $c<guild_id> = $message<d><id>;
-            %.channels{$c<id>} = self.inflate-channel($c);
+            my $id = $c<id>;
+            my $chan = Channel.new( id => $id, api => self, real => Channel.reify( $c, self ) );
+            %.channels{$id} = $chan;
+        }
+
+        %.guilds{$message<d><id>} = self.inflate-guild($message<d>);
+
+        # TODO: We might never get all of the guilds in the READY event. Set up
+        # a timeout to keep it.
+        if [&&] map *.defined, %.guilds.values {
+            say "All guilds ready!";
+            $!guilds-ready.keep;
         }
     }
     elsif $message<t> eq 'READY' {
@@ -193,6 +210,9 @@ method !handle-message($message) {
             id => '@me',
             real-id => $message<d><user><id>
         ));
+
+        # Initialise empty objects for later.
+        %.guilds{$_<id>} = Any for $message<d><guilds><>;
     }
 }
 
@@ -217,7 +237,7 @@ method connect($session-id?, $sequence?) returns Promise {
 #| Proxies the READY promise on connection. Await this before communicating with
 #discord.
 method ready returns Promise {
-    $!conn.ready;
+    Promise.allof($!conn.ready, $!guilds-ready);
 }
 
 #| Emits a Message object whenever a message is received. B<TODO> Currently this emits hashes.
@@ -251,74 +271,92 @@ to the documented return value.
 =end pod
 
 #| See also get-message(s) on the Channel class.
-method get-message ($channel-id, $id) returns Promise {
-    Message.read({:$channel-id, :$id, _api => self}, $!conn.rest);
+method get-message (Any:D $channel-id, Any:D $id) returns Message {
+    Message.new(:$channel-id, :$id, _api => self);
 }
 
-method get-messages ($channel-id, @message-ids) returns Promise {
-    Promise.allof( @message-ids.map: self.get-message($channel-id, *) );
+method get-messages (Any:D $channel-id, Any:D @message-ids) returns Array {
+    @message-ids.map: self.get-message($channel-id, *);
 }
 
 method inflate-message (%json) returns Message {
-    Message.from-json(%(|%json, _api => self));
+    Message.new(
+        api => self,
+        id => %json<id>,
+        channel-id => %json<channel_id>,
+        real => Message.reify( %json )
+    );
 }
 
 method create-message (%params) returns Message {
-    Message.new(|%params, api => self);
+    Message.new(
+        api => self,
+        |%params
+    );
 }
 
-method get-channel ($id) returns Promise {
-    start {
-        %.channels{$id} //= await Channel.read({id => $id, _api => self}, ($!conn.rest))
-    }
+method get-channel (Any:D $id) returns Channel {
+    %.channels{$id} //= Channel.new( id => $id, api => self );
 }
 
-method get-channels (@channel-ids) returns Promise {
-    Promise.allof( @channel-ids.map: self.get-channel(*) );
+method get-channels (Any:D @channel-ids) returns Array {
+    @channel-ids.map: self.get-channel(*);
 }
 
 method inflate-channel (%json) returns Channel {
-    Channel.from-json(%(|%json, _api => self));
+    Channel.new(
+        api => self,
+        id => %json<id>,
+        real => Channel.reify( %json, self )
+    );
 }
 
 method create-channel (%params) returns Channel {
     Channel.new(|%params, api => self);
 }
 
-method get-guild ($id) returns Promise {
-    start {
-        %.guilds{$id} //= await Guild.read({id => $id, _api => self}, $!conn.rest)
-    }
+method get-guild (Any:D $id) returns Guild {
+    %.guilds{$id} //= Guild.new(id => $id, _api => self)
 }
 
-method get-guilds (@guild-ids) returns Promise {
-    Promise.allof( @guild-ids.map: self.get-guild(*) );
+method get-guilds (Any:D @guild-ids) returns Array {
+    @guild-ids.map: self.get-guild(*);
 }
 
 method inflate-guild (%json) returns Guild {
-    Guild.from-json(%(|%json, _api => self));
+    Guild.new(
+        api => self,
+        id => %json<id>,
+        real => Guild.reify( %json )
+    );
 }
 
 method create-guild (%params) returns Guild {
     Guild.new(|%params, api => self);
 }
 
-method get-user ($id) returns Promise {
-    User.read(id => $id, _api => self, $!conn.rest)
+method get-user (Any:D $id) returns User {
+    User.new(id => $id, api => self);
 }
 
-method get-users (@user-ids) returns Promise {
-    Promise.allof( @user-ids.map: self.get-user(*) );
+method get-users (Any:D @user-ids) returns Array {
+    @user-ids.map: self.get-user(*);
 }
 
 method inflate-user (%json) returns User {
-    User.from-json(%(|%json, _api => self));
+    User.new(
+        api => self,
+        id => %json<id>,
+        real-id => %json<real-id>,
+        real => User.reify( %json, self )
+    );
 }
 
 method create-user (%params) returns User {
     User.new(|%params, api => self);
 }
 
+# TODO
 method inflate-member(%json) returns Guild::Member {
     Guild::Member.from-json(%(|%json, _api => self));
 }

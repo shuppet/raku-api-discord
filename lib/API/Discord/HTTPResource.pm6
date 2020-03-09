@@ -29,7 +29,8 @@ produced by RESTy.
 role JSONy is export {
     #| Builds the object from a hash. The hash is made from the JSON, courtesy
     #| of Cro.
-    method from-json ($json) returns ::?CLASS { ... }
+    method from-json (::?CLASS:U: $json) { ...  }
+
     #| Turns the object into a hash. from-json(to-json($object)) should return
     #| the same object (or at least an equivalent copy).
     method to-json returns Hash { ... }
@@ -90,11 +91,15 @@ role RESTy[$base-url] is export {
         }
         # TODO: does anything generate data such that we need to re-fetch after
         # creation?
+        use Data::Dump;
+        my $body = $object.to-json;
         if $object.can('id') and $object.id {
-            self.put: $endpoint, body => $object.to-json;
+            say "PATCH $endpoint " ~ Dump $body if %*ENV<API_DISCORD_DEBUG>;
+            self.patch: $endpoint, :$body;
         }
         else {
-            self.post: $endpoint, body => $object.to-json;
+            say "POST $endpoint " ~ Dump $body if %*ENV<API_DISCORD_DEBUG>;
+            self.post: $endpoint, :$body;
         }
     }
 
@@ -142,15 +147,15 @@ necessary that the class consuming HTTPResource also consumes JSONy.
 role HTTPResource is export {
     #| Upload self, given a RESTy client. Returns a Promise that resolves to
     #| self. Not all resources can be created.
-    multi method create(RESTy $rest) {
+    method create(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'create');
-        $rest.send($endpoint, self).then({ self if $^a.result });
+        $rest.send($endpoint, self);
     }
 
     #| Returns a Promise that resolves to a constructed object of this type. Use
     #| named parameters to pass in the data that the C<read> endpoint requires;
     #| usually an ID. Finally, pass in a connected RESTy object.
-    multi method read(::?CLASS:U: %data, RESTy $rest) {
+    method read(::?CLASS:U: %data, RESTy $rest) {
         my $endpoint = endpoint-for(self, 'read', |%data);
         $rest.fetch($endpoint, self, %data);
     }
@@ -164,7 +169,7 @@ role HTTPResource is export {
 
     #| Deletes the resource. Must have an ID already. Not all resources can be
     #| deleted. Returns a Promise.
-    multi method delete(RESTy $rest) {
+    method delete(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'delete');
         $rest.remove($endpoint, self).then({ self if $^a.result });
     }

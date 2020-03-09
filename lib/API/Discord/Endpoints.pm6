@@ -103,12 +103,11 @@ module API::Discord::Endpoints {
     ;
 
     sub endpoint-for ($r, $method, *%args) is export {
-        my $type = $r.WHAT.^name.split('::')[*-1];
+        my $type = $r.WHAT.^name.split('::').grep({ ! /ButReal/ })[*-1];
 
         my $e = %ENDPOINTS{$type}{$method} or die "No endpoint for $type and $method";
-	#say '$e: ' ~ $e;
         my @required-fields = $e ~~ m:g/ '{' <( .+? )> '}' /;
-	#say '@rf: ' ~ @required-fields;
+
         for @required-fields -> $f {
             next if %args{$f};
             #say '$f: ' ~ $f;

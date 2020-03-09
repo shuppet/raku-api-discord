@@ -1,26 +1,53 @@
+use Object::Delayed;
 use API::Discord::Object;
 use API::Discord::Endpoints;
 use API::Discord::Permissions;
 
 unit class API::Discord::Guild does API::Discord::Object is export;
 
-=begin pod
+class ButReal does API::Discord::DataObject {
+    has $.id;
+    has $.name;
+    has $.icon;
+    has $.splash;
+    has $.is-owner;
+    has $.owner-id;
+    has $.permissions;
+    has $.region;
+    has $.afk-channel-id;
+    has $.afk-channel-timeout;
+    has $.is-embeddable;
+    has $.embed-channel-id;
+    has $.verification-level;
+    has $.default-notification-level;
+    has $.content-filter-level;
+    has $.mfa-level-required;
+    has $.application-id;
+    has $.is-widget-enabled;
+    has $.widget-channel-id;
+    has $.system-channel-id;
+    has DateTime $.joined-at;
+    has $.is-large;
+    has $.is-unavailable;
+    has $.member-count;
 
-=head1 NAME
+    method to-json {
+        my %self = self.Capture.hash;
+        my %json = %self<id name icon splash>:kv;
 
-API::Discord::Guild - Colloquially known as a server
+        %json<owner> = %self<is-owner>;
 
-=head1 DESCRIPTION
+        return %json;
+    }
 
-Defines a guild, or server, slightly adapting the JSON object defined in the
-documentation at L<https://discordapp.com/developers/docs/resources/guild>.
+    method from-json (%json) {
+        # TODO I guess
+        my %constructor = %json<id name icon splash>:kv;
+        %constructor<is-owner> = %json<owner>;
 
-Guilds are usually created by the websocket layer, as a result of the bot user
-being added to the guild. However, the Discord documentation does allow for
-guilds to be fetched or created via the API in some circumstances. Knowing
-whether or not you can do this is up to the user; you can always try.
-
-=end pod
+        return self.new(|%constructor);
+    }
+}
 
 class Member { ... };
 
@@ -40,54 +67,49 @@ enum VerificationLevel (
     <verification-none verification-low verification-medium verification-high verification-very-high>
 );
 
-=head1 PROPERTIES
-
-=begin pod
-=head2 JSON fields
-
-See L<API::Discord::Object> for JSON fields discussion
-
-    < id name icon splash is-owner owner-id permissions region afk-channel-id
-    afk-channel-timeout is-embeddable embed-channel-id verification-level
-    default-notification-level content-filter-level mfa-level-required
-    application-id is-widget-enabled widget-channel-id system-channel-id joined-at
-    is-large is-unavailable member-count >
-
-=end pod
-
+# We can, in some situations, create guilds through the API. So we can't require
+# an ID.
 has $.id;
-has $.name;
-has $.icon;
-has $.splash;
-has $.is-owner;
-has $.owner-id;
-has $.permissions;
-has $.region;
-has $.afk-channel-id;
-has $.afk-channel-timeout;
-has $.is-embeddable;
-has $.embed-channel-id;
-has $.verification-level;
-has $.default-notification-level;
-has $.content-filter-level;
-has $.mfa-level-required;
-has $.application-id;
-has $.is-widget-enabled;
-has $.widget-channel-id;
-has $.system-channel-id;
-has DateTime $.joined-at;
-has $.is-large;
-has $.is-unavailable;
-has $.member-count;
+has $.api is required;
+has $.real handles <
+    name
+    icon
+    splash
+    is-owner
+    owner-id
+    permissions
+    region
+    afk-channel-id
+    afk-channel-timeout
+    is-embeddable
+    embed-channel-id
+    verification-level
+    default-notification-level
+    content-filter-level
+    mfa-level-required
+    application-id
+    is-widget-enabled
+    widget-channel-id
+    system-channel-id
+    joined-at
+    is-large
+    is-unavailable
+    member-count
 
-=begin pod
-=head2 Object properties
+    create
+    read
+    update
+    delete
+> = slack { await API::Discord::Guild::ButReal.read({:$!id, :$!api}, $!api.rest) };
 
-See L<API::Discord::Object> for Object properties discussion
+multi method reify (::?CLASS:U: $data) {
+    ButReal.from-json($data);
+}
 
-    < roles emojis features voice-states members channels presences >
-
-=end pod
+multi method reify (::?CLASS:D: $data) {
+    my $r = ButReal.from-json($data);
+    $!real = $r;
+}
 
 has @.roles;
 has @.emojis;
@@ -148,26 +170,7 @@ multi method remove-member(Int $user-id) returns Promise {
     return $.api.rest.delete($e);
 }
 
-#! See L<Api::Discord::JSONy>
-method to-json {
-    my %self = self.Capture.hash;
-    my %json = %self<id name icon splash>:kv;
-
-    %json<owner> = %self<is-owner>;
-
-    return %json;
-}
-
-#! See L<Api::Discord::JSONy>
-method from-json (%json) {
-    my %constructor = %json<id name icon splash>:kv;
-    %constructor<is-owner> = %json<owner>;
-
-    %constructor<api> = %json<_api>;
-    return self.new(|%constructor);
-}
-
-class Member does API::Discord::Object {
+class Member does API::Discord::DataObject {
     has $.guild;
     has $.user;
     has $.nick;
@@ -210,3 +213,40 @@ class Member does API::Discord::Object {
         return self.new(|%constructor);
     }
 }
+=begin pod
+
+=head1 NAME
+
+API::Discord::Guild - Colloquially known as a server
+
+=head1 DESCRIPTION
+
+Defines a guild, or server, slightly adapting the JSON object defined in the
+documentation at L<https://discordapp.com/developers/docs/resources/guild>.
+
+Guilds are usually created by the websocket layer, as a result of the bot user
+being added to the guild. However, the Discord documentation does allow for
+guilds to be fetched or created via the API in some circumstances. Knowing
+whether or not you can do this is up to the user; you can always try.
+
+=end pod
+=begin pod
+=head2 JSON fields
+
+See L<API::Discord::Object> for JSON fields discussion
+
+    < id name icon splash is-owner owner-id permissions region afk-channel-id
+    afk-channel-timeout is-embeddable embed-channel-id verification-level
+    default-notification-level content-filter-level mfa-level-required
+    application-id is-widget-enabled widget-channel-id system-channel-id joined-at
+    is-large is-unavailable member-count >
+
+=end pod
+=begin pod
+=head2 Object properties
+
+See L<API::Discord::Object> for Object properties discussion
+
+    < roles emojis features voice-states members channels presences >
+
+=end pod

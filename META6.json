@@ -10,6 +10,7 @@
   "auth": "github:shuppet",
   "depends": [
     "Cro::WebSocket",
+    "Object::Delayed",
     "URI::Encode"
   ],
   "provides": {

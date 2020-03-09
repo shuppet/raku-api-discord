@@ -13,3 +13,7 @@ enum OPCODE is export (
 enum CLOSE-EVENT is export (
 );
 
+
+package ChannelType is export {
+    enum :: <guild-text dm guild-voice group-dm guild-category> ;
+}
