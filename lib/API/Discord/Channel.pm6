@@ -148,20 +148,21 @@ method pinned-messages($force?) returns Promise {
 }
 
 #| Sends a message to the channel and returns the POST promise.
-multi method send-message($content) {
+multi method send-message($content) returns Promise {
     self.send-message(:$content)
 }
 
-multi method send-message(:$embed, :$content) {
-    # FIXME: proper exception
+multi method send-message(:$embed, :$content) returns Promise {
+    # FIXME: proper exception. And validate Message instead of doing it here.
     die "Provide at least one of embed or content"
         unless $embed or $content;
 
-    $.api.create-message({
+    my $new-message = $.api.create-message({
         channel-id => $.id,
       |(:$embed if $embed),
       |(:$content if $content)
-    }).create($.api.rest);
+    });
+    return $new-message.create($.api.rest).then({ $new-message if $^a.result });
 }
 
 method pin($message) returns Promise {
