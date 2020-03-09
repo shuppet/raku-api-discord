@@ -1,12 +1,13 @@
-unit class API::Discord::Channel is export;
 use API::Discord::Object;
 use API::Discord::Endpoints;
 use API::Discord::Types;
 use Object::Delayed;
 
+unit class API::Discord::Channel does API::Discord::Object is export;
+
 # The channel-but-real is the Object because it actually communicates with the
 # REST API to get its data. The other one is just a shiv for it.
-class ButReal does API::Discord::Object {
+class ButReal does API::Discord::DataObject {
     has $.id;
     has $.type;
     has $.guild-id;

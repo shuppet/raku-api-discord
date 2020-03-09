@@ -2,9 +2,9 @@ use Object::Delayed;
 use API::Discord::Object;
 use API::Discord::Endpoints;
 
-unit class API::Discord::User is export;
+unit class API::Discord::User does API::Discord::Object is export;
 
-class ButReal does API::Discord::Object {
+class ButReal does API::Discord::DataObject {
     has $.username;
     has $.discriminator;
     has $.avatar;        # The actual image

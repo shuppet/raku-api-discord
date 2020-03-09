@@ -1,10 +1,10 @@
-unit class API::Discord::Message is export;
-
 use API::Discord::Object;
 use URI::Encode;
 use Object::Delayed;
 
-class ButReal does API::Discord::Object {
+unit class API::Discord::Message does API::Discord::Object is export;
+
+class ButReal does API::Discord::DataObject {
     has $.id;
     has $.channel-id;
 
@@ -91,7 +91,7 @@ class Activity {
     has $.party-id;
 }
 
-class Reaction does API::Discord::Object {
+class Reaction does API::Discord::DataObject {
     # This class is special because a) only Message uses it and b) it doesn't
     # use the default HTTP logic when sending.
     has $.emoji;

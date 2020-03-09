@@ -3,9 +3,9 @@ use API::Discord::Object;
 use API::Discord::Endpoints;
 use API::Discord::Permissions;
 
-unit class API::Discord::Guild is export;
+unit class API::Discord::Guild does API::Discord::Object is export;
 
-class ButReal does API::Discord::Object {
+class ButReal does API::Discord::DataObject {
     has $.id;
     has $.name;
     has $.icon;
@@ -170,7 +170,7 @@ multi method remove-member(Int $user-id) returns Promise {
     return $.api.rest.delete($e);
 }
 
-class Member does API::Discord::Object {
+class Member does API::Discord::DataObject {
     has $.guild;
     has $.user;
     has $.nick;
