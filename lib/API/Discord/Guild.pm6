@@ -142,10 +142,12 @@ method unassign-role($user, *@role-ids) {
 }
 
 multi method get-member(API::Discord::Object $user) returns Member {
-    samewith($user.id);
+    # The type constraint is to help selecting the multi candidate, not to
+    # constrain it to User objects.
+    samewith($user.real-id);
 }
 
-multi method get-member(Int $user-id) returns Member {
+multi method get-member(Str $user-id) returns Member {
     my $e = endpoint-for( self, 'get-member', :$user-id );
     my $member = $.api.rest.get($e).result.body.result;
     $member<guild> = self;
