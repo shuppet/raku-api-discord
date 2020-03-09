@@ -164,7 +164,6 @@ multi method reify (::?CLASS:D: $data) {
     $!real = $r;
 }
 
-has $.author;
 has @.mentions-roles; # will lazy { ... }
 has @.attachments;
 
@@ -193,6 +192,10 @@ method add-reaction(Str $e is copy) {
 #| Pins this message to its channel.
 method pin returns Promise {
     self.channel(:now).pin(self)
+}
+
+method author {
+    $.api.get-user($.author-id);
 }
 
 #| Inflates the Message object from the JSON we get from Discord
