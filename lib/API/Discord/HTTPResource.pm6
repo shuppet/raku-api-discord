@@ -164,13 +164,13 @@ role HTTPResource is export {
     #| operation.
     multi method update(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'update');
-        $rest.send($endpoint, self).then({ self if $^a.result });
+        $rest.send($endpoint, self);
     }
 
     #| Deletes the resource. Must have an ID already. Not all resources can be
     #| deleted. Returns a Promise.
     method delete(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'delete');
-        $rest.remove($endpoint, self).then({ self if $^a.result });
+        $rest.remove($endpoint, self);
     }
 }
