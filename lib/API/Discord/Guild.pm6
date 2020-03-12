@@ -67,10 +67,6 @@ enum VerificationLevel (
     <verification-none verification-low verification-medium verification-high verification-very-high>
 );
 
-# We can, in some situations, create guilds through the API. So we can't require
-# an ID.
-has $.id;
-has $.api is required;
 has $.real handles <
     name
     icon

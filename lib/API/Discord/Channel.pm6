@@ -61,8 +61,6 @@ class ButReal does API::Discord::DataObject {
 }
 
 
-has $.id;
-has $.api is required;
 has $.real handles <
     type
     guild-id
@@ -84,11 +82,6 @@ has $.real handles <
     owner
     recipients
     permission-overwrites
-
-    create
-    read
-    update
-    delete
 > = slack { await API::Discord::Channel::ButReal.read({id => $!id, api => $!api}, $!api.rest) };
 
 # Channel.new( id => $id, api => self, real => Channel.reify($hash) );
@@ -157,12 +150,11 @@ multi method send-message(:$embed, :$content) returns Promise {
     die "Provide at least one of embed or content"
         unless $embed or $content;
 
-    my $new-message = $.api.create-message({
+    $.api.create-message({
         channel-id => $.id,
       |(:$embed if $embed),
       |(:$content if $content)
-    });
-    return $new-message.create($.api.rest).then({ $new-message if $^a.result });
+    }).create;
 }
 
 method pin($message) returns Promise {

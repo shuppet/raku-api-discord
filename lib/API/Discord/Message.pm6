@@ -117,10 +117,8 @@ enum Type (
 );
 
 # Both id and channel id are required to fetch a message.
-# id is not 'is required' because a new message doesn't have one
-has $.id;
+# The Object role gives us id.
 has $.channel-id is required;
-has $.api is required;
 has $.real handles <
     author-id
     nonce
@@ -134,11 +132,6 @@ has $.real handles <
     type
     timestamp
     edited
-
-    create
-    read
-    update
-    delete
 > = slack { await API::Discord::Message::ButReal.read({:$!channel-id, :$!id, :$!api}, $!api.rest) };
 
 submethod BUILD (:$!id, :$!channel-id, :$!api, :$!real, *%real-properties is copy) {

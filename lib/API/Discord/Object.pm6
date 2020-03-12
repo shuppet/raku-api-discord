@@ -1,23 +1,42 @@
 use API::Discord::HTTPResource;
 
-role API::Discord::Object {}
+role API::Discord::DataObject does HTTPResource does JSONy { }
 
-role API::Discord::DataObject does HTTPResource does JSONy {
-    #| A handle on the API::Discord object that made this
-    has $.api;
+=begin pod
 
-    #multi method create ($rest) { self.HTTPResource::create($rest) }
-    #multi method create { self.create($.api.rest) }
-    #
-    #multi method read ($rest) { self.HTTPResource::read($rest) }
-    #multi method read { self.read($.api.rest) }
-    #
-    #multi method update ($rest) { self.HTTPResource::update($rest) }
-    multi method update { say self ~ " " ~ $.name; self.update($.api.rest) }
-    #
-    #multi method delete ($rest) { self.HTTPResource::delete($rest) }
-    #multi method delete { self.delete($.api.rest) }
+=head1 API::Discord::Object
+
+=end pod
+
+role API::Discord::Object {
+    has $.id;
+    has $.api is required;
+    # I don't know how to define this yet
+    # has $.real = ...;
+
+    method create {
+        start {
+            my $r = $.real.create($.api.rest).result.body.result;
+            $!id = $r<id>;
+            self;
+        }
+    }
+
+    method update {
+        start {
+            await $.real.update($.api.rest);
+            self;
+        }
+    }
+
+    method delete {
+        start {
+            await $.real.delete($.api.rest);
+            self;
+        }
+    }
 }
+
 
 =begin pod
 
@@ -27,63 +46,34 @@ API::Discord::Object - Base class for all the Discord things
 
 =head1 DESCRIPTION
 
-This base class is a  L<JSONy|API::Discord::JSONy>
-L<Resource|API::Discord::HTTPResource>. It also defines a single attribute,
-C<$.api>. Any object made through the API has the API in this attribute, This
-allows objects to ask the API for other, related objects, since it is the API
-that is connected to Discord in the first place.
+Object is a thin class that only contains the information required to populate
+its C<$.real> object on demand. For most objects this is C<$.id>; some will have
+additional data, like how Message also has channel ID. All consumers of this
+role will be responsible for constructing their own C<$.real> on demand.
 
-It should be noted that the API object should be set on Objects - that's the
-point of the class. We are using the convention that the special C<_api> key is
-used to pass the API object into an Object constructed by C<from-json>, rather
-than via the constructor.
+The key part here is that C<$.id> is the I<only> part that is not required,
+because a new object will not have an ID yet. Any other data (like channel ID)
+is required.
 
-This key is not expected to be returned from C<to-json>. That would be weird.
+The C<$.real> property must also do C<API::Discord::DataObject>.
 
-=head1 COMMON FEATURES
+As a result, we can now handle the CRUD methods, proxy them to $.real, and
+populate the ID field from the response, where necessary.
 
-=head2 JSON fields
+We then facade them so that their Promise now resolves to this outer Object and
+not the DataObject inside it.
 
-JSON fields are those attributes of the Object that map directly to the JSON
-fields in the Discord documentation.
+We don't need "read" on these objects, as that is done simply by accessing any
+of the properties of the C<$.real> object.
 
-Since we are not required to adhere to the structures in the documentation, some
-changes are made. First, we replace underscores with dashes; and then we alter
-the names of many boolean fields to have boolean-meaning names. This latter
-change often simply involves the addition of C<is-> or C<has-> or something like
-that.
+=head1 API::Discord::DataObject
 
-In general, the meaning of one of the JSON fields should be clear from its name,
-and if not, it should be clear which field in the Discord documentation it
-refers to.
+This Role simply merges  L<JSONy|API::Discord::JSONy> and
+L<HTTPResource|API::Discord::HTTPResource>. It is marshalled via
+L<API::Discord::Object>s.
 
-Exceptions may come in when the Discord JSON structure is dodgy; for example, if
-they populate a field with an ID but the field is not named C<_id>, then we will
-call it C<-id> because of the Object properties.
-
-=head2 Object properties
-
-Object properties are inflated objects. These usually correspond to C<-id> JSON
-fields, but in some cases we have reverse-engineered a relationship that goes
-the other way.
-
-Sometimes Object properties and JSON fields coïncide. For example, Messages have
-Embed objects, but no C<embed-ids>. That's because the JSON structure in the
-Discord documentation has the embed objects in their entirety within the message
-object, rather than provided by ID. In this case, the attribute is still
-considered an Object property, because we can inflate an Embed object from JSON,
-and deflate it to JSON, automatically. The point is that to the user, it is an
-object, not a simple type.
-
-=head2 Promises
-
-Each object may have properties that are not part of the Discord JSON object,
-but are fetched separately: often, these are other objects related to this one.
-
-These properties are actually Promises that resolve to the set of related
-objects, as opposed to all the other ones, which are set at construction time
-because we already have them.
-
-=head1 PROPERTIES
+The purpose of this role is to be applied to classes whose structures mimic the
+actual JSON data returned from Discord's API. As a result they all have
+C<from-json> and C<to-json>.
 
 =end pod
