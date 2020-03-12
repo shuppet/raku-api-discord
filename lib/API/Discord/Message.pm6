@@ -146,6 +146,14 @@ submethod BUILD (:$!id, :$!channel-id, :$!api, :$!real, *%real-properties is cop
         # so it constructs itself
         $!real = ButReal.new(|%real-properties);
     }
+
+    $!api.events.tap: -> $e {
+        my $e-mid = $e<d><message_id>;
+
+        if $e-mid and $!id and $e-mid == $!id {
+            $!events.emit($e);
+        }
+    }
 }
 
 multi method reify (::?CLASS:U: $data) {
@@ -160,6 +168,10 @@ multi method reify (::?CLASS:D: $data) {
 has @.mentions-roles; # will lazy { ... }
 has @.attachments;
 
+# Events from the API specifically for this message.
+has Supplier $!events = Supplier.new;
+
+
 # TODO: perhaps this should be emoji => count and we don't need the Reaction class.
 # (We can use Emoji objects as the keys if we want)
 has @.reactions;
@@ -167,6 +179,10 @@ has @.reactions;
 # TODO
 #has API::Discord::Activity $.activity;
 #has API::Discord::Application $.application;
+
+method events {
+    $!events.Supply
+}
 
 method addressed returns Bool {
     self.mentions.first({ $.api.user.real-id == $_.real-id }).Bool
