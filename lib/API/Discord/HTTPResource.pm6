@@ -106,7 +106,7 @@ role RESTy[$base-url] is export {
     #| Sends a PUT but no data required. Useful to avoid creating whole classes
     #| just so they can self-send
     method touch(Str $endpoint) returns Promise {
-        self.put: "$.base-url$endpoint", body => {};
+        self.put: $endpoint, body => {};
     }
 
     #| Creates a JSONy object, given a full URL and the class.
@@ -119,7 +119,7 @@ role RESTy[$base-url] is export {
 
     #| Deletes the thing with DELETE
     method remove(Str $endpoint) returns Promise {
-        self.delete: "$.base-url$endpoint";
+        self.delete: $endpoint;
     }
 }
 
@@ -171,6 +171,6 @@ role HTTPResource is export {
     #| deleted. Returns a Promise.
     method delete(RESTy $rest) {
         my $endpoint = endpoint-for(self, 'delete');
-        $rest.remove($endpoint, self);
+        $rest.remove($endpoint);
     }
 }
