@@ -61,8 +61,6 @@ class ButReal does API::Discord::DataObject {
 }
 
 
-has $.id;
-has $.api is required;
 has $.real handles <
     type
     guild-id
@@ -84,11 +82,6 @@ has $.real handles <
     owner
     recipients
     permission-overwrites
-
-    create
-    read
-    update
-    delete
 > = slack { await API::Discord::Channel::ButReal.read({id => $!id, api => $!api}, $!api.rest) };
 
 # Channel.new( id => $id, api => self, real => Channel.reify($hash) );
@@ -148,12 +141,12 @@ method pinned-messages($force?) returns Promise {
 }
 
 #| Sends a message to the channel and returns the POST promise.
-multi method send-message($content) {
+multi method send-message($content) returns Promise {
     self.send-message(:$content)
 }
 
-multi method send-message(:$embed, :$content) {
-    # FIXME: proper exception
+multi method send-message(:$embed, :$content) returns Promise {
+    # FIXME: proper exception. And validate Message instead of doing it here.
     die "Provide at least one of embed or content"
         unless $embed or $content;
 
@@ -161,7 +154,7 @@ multi method send-message(:$embed, :$content) {
         channel-id => $.id,
       |(:$embed if $embed),
       |(:$content if $content)
-    }).create($.api.rest);
+    }).create;
 }
 
 method pin($message) returns Promise {

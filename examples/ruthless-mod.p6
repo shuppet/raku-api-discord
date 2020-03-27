@@ -9,7 +9,7 @@ sub MAIN($token) {
 
     react {
         whenever $discord.messages -> $message {
-            await $message.delete($discord.rest)
+            await $message.delete
         }
     }
 }

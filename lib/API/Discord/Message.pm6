@@ -117,10 +117,8 @@ enum Type (
 );
 
 # Both id and channel id are required to fetch a message.
-# id is not 'is required' because a new message doesn't have one
-has $.id;
+# The Object role gives us id.
 has $.channel-id is required;
-has $.api is required;
 has $.real handles <
     author-id
     nonce
@@ -134,11 +132,6 @@ has $.real handles <
     type
     timestamp
     edited
-
-    create
-    read
-    update
-    delete
 > = slack { await API::Discord::Message::ButReal.read({:$!channel-id, :$!id, :$!api}, $!api.rest) };
 
 submethod BUILD (:$!id, :$!channel-id, :$!api, :$!real, *%real-properties is copy) {
@@ -153,6 +146,14 @@ submethod BUILD (:$!id, :$!channel-id, :$!api, :$!real, *%real-properties is cop
         # so it constructs itself
         $!real = ButReal.new(|%real-properties);
     }
+
+    $!api.events.tap: -> $e {
+        my $e-mid = $e<d><message_id>;
+
+        if $e-mid and $!id and $e-mid == $!id {
+            $!events.emit($e);
+        }
+    }
 }
 
 multi method reify (::?CLASS:U: $data) {
@@ -164,9 +165,12 @@ multi method reify (::?CLASS:D: $data) {
     $!real = $r;
 }
 
-has $.author;
 has @.mentions-roles; # will lazy { ... }
 has @.attachments;
+
+# Events from the API specifically for this message.
+has Supplier $!events = Supplier.new;
+
 
 # TODO: perhaps this should be emoji => count and we don't need the Reaction class.
 # (We can use Emoji objects as the keys if we want)
@@ -175,6 +179,10 @@ has @.reactions;
 # TODO
 #has API::Discord::Activity $.activity;
 #has API::Discord::Application $.application;
+
+method events {
+    $!events.Supply
+}
 
 method addressed returns Bool {
     self.mentions.first({ $.api.user.real-id == $_.real-id }).Bool
@@ -193,6 +201,10 @@ method add-reaction(Str $e is copy) {
 #| Pins this message to its channel.
 method pin returns Promise {
     self.channel(:now).pin(self)
+}
+
+method author {
+    $.api.get-user($.author-id);
 }
 
 #| Inflates the Message object from the JSON we get from Discord

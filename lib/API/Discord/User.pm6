@@ -28,41 +28,13 @@ class ButReal does API::Discord::DataObject {
     }
 }
 
-=begin pod
-
-=head1 NAME
-
-API::Discord::User - Represents Discord user
-
-=head1 DESCRIPTION
-
-Represents a Discord user, usually sent to us via the websocket. See
-L<https://discordapp.com/developers/docs/resources/user>.
-
-Users cannot be created or deleted.
-
-See also L<API::Discord::Object>.
-
-=head1 PROMISES
-
-=head2 guilds
-
-Resolves to a list of L<API::Discord::Guild> objects
-
-=head2 dms
-
-Resolves to a list of L<API::Discord::Channel> objects (direct messages)
-
-=end pod
-
 has Promise $!dms-promise;
 has Promise $!guilds-promise;
 
 #| Use real-id if you want to compare the user's numeric ID. This lets us put
 #| '@me' in id itself, for endpoints
 has $.real-id;
-has $.id is required;
-has $.api is required;
+
 has $.real handles <
     username
     discriminator
@@ -83,7 +55,6 @@ multi method reify (::?CLASS:D: $data) {
     my $r = ButReal.new(|%$data, api => $.api);
     $!real = $r;
 }
-
 
 submethod TWEAK() {
     $!real-id //= $!id;
@@ -117,16 +88,6 @@ method dms($force?) returns Promise {
     $!guilds-promise
 }
 
-=begin pod
-
-=head1 METHODS
-
-=head2 create-dm
-
-Creates a DM with the provided C<$user>. This is an L<API::Discord::Channel>
-object; the method returns a Promise that resolves to this.
-
-=end pod
 
 method create-dm($user) returns Promise {
     start {
@@ -137,3 +98,36 @@ method create-dm($user) returns Promise {
     }
 }
 
+=begin pod
+
+=head1 NAME
+
+API::Discord::User - Represents Discord user
+
+=head1 DESCRIPTION
+
+Represents a Discord user, usually sent to us via the websocket. See
+L<https://discordapp.com/developers/docs/resources/user>.
+
+Users cannot be created or deleted.
+
+See also L<API::Discord::Object>.
+
+=head1 PROMISES
+
+=head2 guilds
+
+Resolves to a list of L<API::Discord::Guild> objects
+
+=head2 dms
+
+Resolves to a list of L<API::Discord::Channel> objects (direct messages)
+
+=head1 METHODS
+
+=head2 create-dm
+
+Creates a DM with the provided C<$user>. This is an L<API::Discord::Channel>
+object; the method returns a Promise that resolves to this.
+
+=end pod
