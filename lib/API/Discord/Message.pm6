@@ -134,6 +134,16 @@ has $.real handles <
     edited
 > = slack { await API::Discord::Message::ButReal.read({:$!channel-id, :$!id, :$!api}, $!api.rest) };
 
+# Events from the API specifically for this message.
+has Supplier $!events = Supplier.new;
+
+has @.mentions-roles; # will lazy { ... }
+has @.attachments;
+
+# TODO: perhaps this should be emoji => count and we don't need the Reaction class.
+# (We can use Emoji objects as the keys if we want)
+has @.reactions;
+
 submethod BUILD (:$!id, :$!channel-id, :$!api, :$!real, *%real-properties is copy) {
     if $!real and %real-properties {
         die "Provided a real object, but also properties to make one!"
@@ -164,17 +174,6 @@ multi method reify (::?CLASS:D: $data) {
     my $r = ButReal.from-json($data);
     $!real = $r;
 }
-
-has @.mentions-roles; # will lazy { ... }
-has @.attachments;
-
-# Events from the API specifically for this message.
-has Supplier $!events = Supplier.new;
-
-
-# TODO: perhaps this should be emoji => count and we don't need the Reaction class.
-# (We can use Emoji objects as the keys if we want)
-has @.reactions;
 
 # TODO
 #has API::Discord::Activity $.activity;
