@@ -179,25 +179,26 @@ method handle-opcode($json) {
 #| Produce a regular Supply. We have to wait to do this because Discord tells us
 #| what regularity to use. If Discord doesn't ack the heartbeat, we reconnect.
 method setup-heartbeat($interval) {
-    $!heartbeat = Supply.interval($interval);
-    $!heartbeat.tap: {
-        $*ERR.print: "«♥";
-        $!websocket.send({
-            d => $!sequence,
-            op => OPCODE::heartbeat.Int,
-        });
-
-        # Set up a timeout that will be kept if the ack promise isn't
-        $!hb-ack = Promise.new;
-        Promise.anyof(
-            Promise.in($interval), $!hb-ack
-        ).then({
-            return if $!hb-ack;
-            $*ERR.print: "💔! 🔌»";
+    start react whenever $!heartbeat {
+        if $!hb-ack.defined and not $!hb-ack {
+            note "Heartbeat wasn't acknowledged! ☹";
+            note "Attempting to reconnect...";
 
             # TODO: Configurable number of reattempts before we just bail
             self.connect;
-        });
+            done;
+        }
+        else {
+            note "« ♥";
+            $!websocket.send({
+                d => $!sequence,
+                op => OPCODE::heartbeat.Int,
+            });
+
+            # Set up a timeout that will be kept if the ack promise isn't
+            $!hb-ack = Promise.new;
+            Promise.in($interval).then($!hb-ack.break);
+        }
     };
 }
 
