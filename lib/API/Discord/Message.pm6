@@ -147,7 +147,7 @@ submethod BUILD (:$!id, :$!channel-id, :$!api, :$!real, *%real-properties is cop
         $!real = ButReal.new(|%real-properties);
     }
 
-    $!api.events.tap: -> $e {
+    start react whenever $!api.events -> $e {
         my $e-mid = $e<d><message_id>;
 
         if $e-mid and $!id and $e-mid == $!id {
