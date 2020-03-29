@@ -143,7 +143,9 @@ has Connection $!conn;
 #| The API version to use. Defaults to 6 but can be overridden if the API moves on without us.
 has Int $.version = 6;
 #| Host to which to connect. Can be overridden for testing e.g.
-has Str $.host = 'gateway.discord.gg';
+has Str $.ws-host = 'gateway.discord.gg';
+#| Host for REST requests
+has Str $.rest-host = 'discordapp.com';
 #| Bot token or whatever, used for auth.
 has Str $.token is required;
 #| Shard number for this connection
@@ -220,10 +222,11 @@ submethod DESTROY {
     $!conn.close;
 }
 
-#| Connects to discord. Await the returned Promise, then tap $.messages and $.events
+#| Connects to discord. Await the L</ready> Promise, then tap $.messages and $.events
 method connect($session-id?, $sequence?) returns Promise {
     $!conn = Connection.new(
-        url => "wss://{$.host}/?v={$.version}&encoding=json",
+        ws-url => "wss://{$.ws-host}/?v={$.version}&encoding=json",
+        rest-url => "https://{$.rest-host}/api",
         :$.token,
         :$.shard,
         :$.shards-max,
