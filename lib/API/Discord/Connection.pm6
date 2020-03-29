@@ -181,15 +181,14 @@ method handle-opcode($json) {
 method setup-heartbeat($interval) {
     start react whenever $!heartbeat {
         if $!hb-ack.defined and not $!hb-ack {
-            note "Heartbeat wasn't acknowledged! ☹";
-            note "Attempting to reconnect...";
+            $*ERR.print: "💔! 🔌…";
 
             # TODO: Configurable number of reattempts before we just bail
             self.connect;
             done;
         }
         else {
-            note "« ♥";
+            $*ERR.print: "« ♥";
             $!websocket.send({
                 d => $!sequence,
                 op => OPCODE::heartbeat.Int,
@@ -205,7 +204,7 @@ method setup-heartbeat($interval) {
 #| Prevents the panic stations we get when we don't hear back from the
 #| heartbeat.
 method ack-heartbeat-ack {
-    $*ERR.print: "♥» ";
+    $*ERR.print: "♥ » ";
     $!hb-ack.keep;
 }
 
