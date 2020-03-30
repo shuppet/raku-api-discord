@@ -1,3 +1,5 @@
+use API::Discord::Exceptions;
+
 unit class API::Discord::Connection;
 
 =begin pod
@@ -176,27 +178,34 @@ method handle-opcode($json) {
     }
 }
 
-#| Produce a regular Supply. We have to wait to do this because Discord tells us
-#| what regularity to use. If Discord doesn't ack the heartbeat, we reconnect.
-method setup-heartbeat($interval) {
-    start react whenever $!heartbeat {
-        if $!hb-ack.defined and not $!hb-ack {
-            $*ERR.print: "💔! 🔌…";
-
-            # TODO: Configurable number of reattempts before we just bail
-            self.connect;
-            done;
+method heartbeat($interval --> Supply) {
+    supply {
+        whenever Supply.interval($interval) {
+            if $!hb-ack {
+                $!hb-ack = Promise.new;
+                emit $_;
+            }
+            else {
+                X::API::Discord::Connection::Flatline.new.throw
+            }
         }
-        else {
-            $*ERR.print: "« ♥";
-            $!websocket.send({
-                d => $!sequence,
-                op => OPCODE::heartbeat.Int,
-            });
+    }
+}
 
-            # Set up a timeout that will be kept if the ack promise isn't
-            $!hb-ack = Promise.new;
-            Promise.in($interval).then($!hb-ack.break);
+method setup-heartbeat($interval) {
+    start react whenever self.heartbeat($interval) {
+        $*ERR.print: "« ♥";
+        $!websocket.send({
+            d => $!sequence,
+            op => OPCODE::heartbeat.Int,
+        });
+
+        QUIT {
+            when X::API::Discord::Connection::Flatline {
+                $*ERR.print: "💔! 🔌…";
+                self.close;
+                self.connect;
+            }
         }
     };
 }
