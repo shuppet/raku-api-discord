@@ -181,7 +181,7 @@ method handle-opcode($json) {
 method heartbeat($interval --> Supply) {
     supply {
         whenever Supply.interval($interval) {
-            if $!hb-ack {
+            if not $!hb-ack.defined or $!hb-ack {
                 $!hb-ack = Promise.new;
                 emit $_;
             }
