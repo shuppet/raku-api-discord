@@ -53,7 +53,6 @@ has Int $.shards-max = 1;
 has Cro::WebSocket::Client::Connection $!websocket;
 has Cro::HTTP::Client $!rest;
 has Supplier $!messages;
-has Supply $!heartbeat;
 has Promise $!hb-ack;
 
 #| This Promise will be kept if the websocket closes. See L<Cro::WebSocket::Client>
@@ -162,7 +161,6 @@ method handle-opcode($json) {
         }
         when OPCODE::hello {
             self.auth;
-            return if $!heartbeat;
             self.setup-heartbeat($payload<heartbeat_interval>/1000);
         }
         when OPCODE::reconnect {
@@ -258,7 +256,6 @@ method messages returns Supply {
 method close {
     say "Closing connection";
     $!messages.done;
-    #$!heartbeat.done;
     await $!websocket.close(code => 4001);
 }
 
