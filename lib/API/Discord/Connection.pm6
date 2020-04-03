@@ -110,9 +110,8 @@ method connect {
 #| Handle websocket messages and set up the closer Promise.
 method _on_ws_connect($!websocket) {
     my $messages = $!websocket.messages;
-    $messages.tap:
-        { self.handle-message($^a) }
-    ;
+
+    start react whenever $messages { self.handle-message($^a) };
 
     $!closer = $!websocket.closer.then(-> $closer {
         my $why = $closer.result;
