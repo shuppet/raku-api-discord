@@ -101,14 +101,14 @@ method connect {
     my $cli = Cro::WebSocket::Client.new: :json;
     $!opener = $cli.connect($!ws-url)
         .then( -> $connection {
-            self._on_ws_connect($connection.result);
+            self!on_ws_connect($connection.result);
         });
 
 }
 
-# TODO: Make this private the p6 way not the p5 way
-#| Handle websocket messages and set up the closer Promise.
-method _on_ws_connect($!websocket) {
+method !on_ws_connect($!websocket) {
+    $!closer = $!websocket.closer;
+
     my $messages = $!websocket.messages;
 
     start react whenever $messages { self.handle-message($^a) };
