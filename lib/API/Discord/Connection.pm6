@@ -251,6 +251,7 @@ method messages returns Supply {
 method close {
     say "Closing connection";
     $!messages.done;
+    $!sequence = $!session-id = Nil;
     await $!websocket.close(code => 4001);
 }
 
