@@ -180,6 +180,8 @@ method heartbeat($interval --> Supply) {
                 X::API::Discord::Connection::Flatline.new.throw
             }
         }
+
+        whenever $!websocket.closer { done }
     }
 }
 
