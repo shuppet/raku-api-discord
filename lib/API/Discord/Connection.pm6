@@ -112,12 +112,6 @@ method _on_ws_connect($!websocket) {
     my $messages = $!websocket.messages;
 
     start react whenever $messages { self.handle-message($^a) };
-
-    $!closer = $!websocket.closer.then(-> $closer {
-        my $why = $closer.result;
-        $!messages.done;
-        $why;
-    });
 }
 
 # TODO: Make private?
