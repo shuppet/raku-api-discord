@@ -51,7 +51,7 @@ has Int $.shards-max = 1;
 
 has Cro::WebSocket::Client::Connection $!websocket;
 has Cro::HTTP::Client $!rest;
-has Supplier $!messages;
+has Supply $!messages;
 has Promise $!hb-ack;
 
 #| This Promise will be kept if the websocket closes. See L<Cro::WebSocket::Client>
@@ -87,8 +87,6 @@ submethod TWEAK {
         ]
     )
     but RESTy[$!rest-url];
-
-    $!messages = Supplier::Preserving.new;
 
     self.connect();
 }
@@ -153,6 +151,7 @@ method !on_ws_connect($!websocket) {
             }
         }
     }
+    .share
 }
 
 method heartbeat($interval --> Supply) {
@@ -230,7 +229,7 @@ method auth {
 #| Wow, a public method! Tap this to receive messages we didn't handle as part
 #| of the protocol gubbins.
 method messages returns Supply {
-    $!messages.Supply;
+    $!messages;
 }
 
 #| Call this to close the connection, I guess. We don't really use it.
