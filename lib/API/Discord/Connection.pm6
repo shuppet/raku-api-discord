@@ -140,7 +140,8 @@ method !on_ws_connect($!websocket) {
                     self.setup-heartbeat($payload<heartbeat_interval>/1000);
                 }
                 when OPCODE::reconnect {
-                    self.auth;
+                    self.disconnect;
+                    self.connect;
                 }
                 when OPCODE::heartbeat-ack {
                     self.ack-heartbeat-ack;
