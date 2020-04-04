@@ -108,7 +108,7 @@ method !on_ws_connect($!websocket) {
 
     $!messages = supply {
         whenever $!websocket.messages -> $m {
-            my $json = $m.body-text.result;
+            my $json = $m.body.result;
 
             if $json<s> {
                 $!sequence = $json<s>;
