@@ -22,7 +22,6 @@ This is used internally and probably of limited use otherwise.
         :$token,
     ;
 
-    $c.closer.then({ say ":( $^a" });
 
     ... # other stuff
 
@@ -109,62 +108,48 @@ method connect {
 method !on_ws_connect($!websocket) {
     $!closer = $!websocket.closer;
 
-    my $messages = $!websocket.messages;
+    $!messages = supply {
+        whenever $!websocket.messages -> $m {
+            my $json = $m.body-text.result;
 
-    start react whenever $messages { self.handle-message($^a) };
-}
-
-# TODO: Make private?
-#| Text messages get checked for Discord-ness. Other messages... don't
-method handle-message($m) {
-    # FIXME - this creates a Promise that may be broken, and we do nothing
-    # about that. It was suggested I use the supply pattern instead, but I'm
-    # not sure how right now
-    $m.body.then({ self.handle-opcode($^a.result) }) if $m.is-text;
-    # else what?
-}
-
-# $json is JSON with an op in it
-# TODO: Make private?
-#| Deals with Discord messages and emits anything that the user might want to
-#| know about.
-method handle-opcode($json) {
-    if $json<s> {
-        $!sequence = $json<s>;
-    }
-
-    my $payload = $json<d>;
-    my $event = $json<t>; # mnemonic: rtfm
-
-    given ($json<op>) {
-        when OPCODE::dispatch {
-            if $event eq 'READY' {
-                $!session-id = $payload<session_id>;
-                $!ready.keep;
+            if $json<s> {
+                $!sequence = $json<s>;
             }
-            $!messages.emit($json);
-        }
-        when OPCODE::invalid-session {
-            note "Session invalid. Refreshing.";
-            $!session-id = Str;
-            $!sequence = Int;
-            # Docs say to wait a random amount of time between 1 and 5
-            # seconds, then re-auth
-            Promise.in(4.rand+1).then({ self.auth });
-        }
-        when OPCODE::hello {
-            self.auth;
-            self.setup-heartbeat($payload<heartbeat_interval>/1000);
-        }
-        when OPCODE::reconnect {
-            self.auth;
-        }
-        when OPCODE::heartbeat-ack {
-            self.ack-heartbeat-ack;
-        }
-        default {
-            note "Unhandled opcode $_ ({OPCODE($_)})";
-            $!messages.emit($json);
+
+            my $payload = $json<d>;
+            my $event = $json<t>; # mnemonic: rtfm
+
+            given ($json<op>) {
+                when OPCODE::dispatch {
+                    if $event eq 'READY' {
+                        $!session-id = $payload<session_id>;
+                        $!ready.keep;
+                    }
+                    emit $json;
+                }
+                when OPCODE::invalid-session {
+                    note "Session invalid. Refreshing.";
+                    $!session-id = Str;
+                    $!sequence = Int;
+                    # Docs say to wait a random amount of time between 1 and 5
+                    # seconds, then re-auth
+                    Promise.in(4.rand+1).then({ self.auth });
+                }
+                when OPCODE::hello {
+                    self.auth;
+                    self.setup-heartbeat($payload<heartbeat_interval>/1000);
+                }
+                when OPCODE::reconnect {
+                    self.auth;
+                }
+                when OPCODE::heartbeat-ack {
+                    self.ack-heartbeat-ack;
+                }
+                default {
+                    note "Unhandled opcode $_ ({OPCODE($_)})";
+                    emit $json;
+                }
+            }
         }
     }
 }
