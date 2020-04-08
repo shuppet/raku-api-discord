@@ -54,8 +54,8 @@ has Cro::HTTP::Client $!rest;
 has Supply $!messages;
 has Promise $!hb-ack;
 
-#| This Promise will be kept if the websocket closes. See L<Cro::WebSocket::Client>
-has Promise $.closer;
+#| Will be kept upon disconnection. May be before or after the websocket closes.
+has Promise $.closer = Promise.new;
 
 #| This Promise is kept when the websocket connects and is set up.
 has Promise $.opener;
@@ -104,8 +104,7 @@ method connect {
 }
 
 method !on_ws_connect($!websocket) {
-    $!closer = $!websocket.closer;
-
+    $!websocket.closer.then({ $!closer.keep if not $!closer });
     $!messages = supply {
         whenever $!websocket.messages -> $m {
             my $json = $m.body.result;
@@ -138,7 +137,9 @@ method !on_ws_connect($!websocket) {
                     self.setup-heartbeat($payload<heartbeat_interval>/1000);
                 }
                 when OPCODE::reconnect {
-                    self.disconnect;
+                    note "reconnect";
+                    self.close;
+                    note "connect ... ";
                     self.connect;
                 }
                 when OPCODE::heartbeat-ack {
@@ -166,7 +167,7 @@ method heartbeat($interval --> Supply) {
             }
         }
 
-        whenever $!websocket.closer { done }
+        whenever $!closer { done }
     }
 }
 
@@ -235,8 +236,11 @@ method messages returns Supply {
 #| Call this to close the connection, I guess. We don't really use it.
 method close {
     say "Closing connection";
-    $!sequence = $!session-id = Nil;
+    $!sequence = Nil;
+    $!session-id = Nil;
+    $!closer.keep;
     await $!websocket.close(code => 4001);
+    note "closed";
 }
 
 #| Gimme your REST client
