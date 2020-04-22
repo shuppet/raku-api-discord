@@ -238,7 +238,7 @@ method close {
     $!sequence = Nil;
     $!session-id = Nil;
     $!closer.keep;
-    await $!websocket.close(code => 4001);
+    $!websocket.close(code => 4001);
     note "closed";
 }
 
