@@ -51,7 +51,7 @@ has Int $.shards-max = 1;
 
 has Cro::WebSocket::Client::Connection $!websocket;
 has Cro::HTTP::Client $!rest;
-has Supply $!messages;
+has Supplier $!messages .= new;
 has Promise $!hb-ack;
 
 #| Will be kept upon disconnection. May be before or after the websocket closes.
@@ -105,54 +105,53 @@ method connect {
 
 method !on_ws_connect($!websocket) {
     $!websocket.closer.then({ $!closer.keep if not $!closer });
-    $!messages = supply {
-        whenever $!websocket.messages -> $m {
-            my $json = $m.body.result;
+    # I made this a supply {} but I realised that it is not a supply; emitting
+    # messages is one of the things we do, but not the only thing we do.
+    start react whenever $!websocket.messages -> $m {
+        my $json = $m.body.result;
 
-            if $json<s> {
-                $!sequence = $json<s>;
+        if $json<s> {
+            $!sequence = $json<s>;
+        }
+
+        my $payload = $json<d>;
+        my $event = $json<t>; # mnemonic: rtfm
+
+        given ($json<op>) {
+            when OPCODE::dispatch {
+                if $event eq 'READY' {
+                    $!session-id = $payload<session_id>;
+                    $!ready.keep;
+                }
+                $!messages.emit: $json;
             }
-
-            my $payload = $json<d>;
-            my $event = $json<t>; # mnemonic: rtfm
-
-            given ($json<op>) {
-                when OPCODE::dispatch {
-                    if $event eq 'READY' {
-                        $!session-id = $payload<session_id>;
-                        $!ready.keep;
-                    }
-                    emit $json;
-                }
-                when OPCODE::invalid-session {
-                    note "Session invalid. Refreshing.";
-                    $!session-id = Str;
-                    $!sequence = Int;
-                    # Docs say to wait a random amount of time between 1 and 5
-                    # seconds, then re-auth
-                    Promise.in(4.rand+1).then({ self.auth });
-                }
-                when OPCODE::hello {
-                    self.auth;
-                    self.setup-heartbeat($payload<heartbeat_interval>/1000);
-                }
-                when OPCODE::reconnect {
-                    note "reconnect";
-                    self.close;
-                    note "connect ... ";
-                    self.connect;
-                }
-                when OPCODE::heartbeat-ack {
-                    self.ack-heartbeat-ack;
-                }
-                default {
-                    note "Unhandled opcode $_ ({OPCODE($_)})";
-                    emit $json;
-                }
+            when OPCODE::invalid-session {
+                note "Session invalid. Refreshing.";
+                $!session-id = Str;
+                $!sequence = Int;
+                # Docs say to wait a random amount of time between 1 and 5
+                # seconds, then re-auth
+                Promise.in(4.rand+1).then({ self.auth });
+            }
+            when OPCODE::hello {
+                self.auth;
+                self.setup-heartbeat($payload<heartbeat_interval>/1000);
+            }
+            when OPCODE::reconnect {
+                note "reconnect";
+                self.close;
+                note "connect ... ";
+                self.connect;
+            }
+            when OPCODE::heartbeat-ack {
+                self.ack-heartbeat-ack;
+            }
+            default {
+                note "Unhandled opcode $_ ({OPCODE($_)})";
+                $!messages.emit: $json;
             }
         }
     }
-    .share
 }
 
 method heartbeat($interval --> Supply) {
@@ -230,7 +229,7 @@ method auth {
 #| Wow, a public method! Tap this to receive messages we didn't handle as part
 #| of the protocol gubbins.
 method messages returns Supply {
-    $!messages;
+    $!messages.Supply;
 }
 
 #| Call this to close the connection, I guess. We don't really use it.
