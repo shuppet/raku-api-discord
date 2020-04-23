@@ -95,7 +95,9 @@ submethod TWEAK {
 #| Connect to the websocket and handle the Promise. Returns the next Promise.
 #| Can be called again, apparently.
 method connect {
+    note "New websocket connection...";
     my $cli = Cro::WebSocket::Client.new: :json;
+    note "Done";
     $!opener = $cli.connect($!ws-url)
         .then( -> $connection {
             self!on_ws_connect($connection.result);
@@ -107,7 +109,7 @@ method !on_ws_connect($!websocket) {
     $!websocket.closer.then({ $!closer.keep if not $!closer });
     # I made this a supply {} but I realised that it is not a supply; emitting
     # messages is one of the things we do, but not the only thing we do.
-    start react whenever $!websocket.messages -> $m {
+    start react { note "Starting message handler"; whenever $!websocket.messages -> $m {
         my $json = $m.body.result;
 
         if $json<s> {
@@ -142,6 +144,8 @@ method !on_ws_connect($!websocket) {
                 self.close;
                 note "connect ... ";
                 self.connect;
+                note "Stopping message handler";
+                done;
             }
             when OPCODE::heartbeat-ack {
                 self.ack-heartbeat-ack;
@@ -151,7 +155,7 @@ method !on_ws_connect($!websocket) {
                 $!messages.emit: $json;
             }
         }
-    }
+    }}
 }
 
 method heartbeat($interval --> Supply) {
