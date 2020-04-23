@@ -49,7 +49,6 @@ has Str $.session-id;
 has Int $.shard = 0;
 has Int $.shards-max = 1;
 
-has Cro::WebSocket::Client::Connection $!websocket;
 has Cro::HTTP::Client $!rest;
 has Supplier $!messages .= new;
 has Promise $!hb-ack;
@@ -105,11 +104,11 @@ method connect {
 
 }
 
-method !on_ws_connect($!websocket) {
-    $!websocket.closer.then({ $!closer.keep if not $!closer });
+method !on_ws_connect($websocket) {
+    $websocket.closer.then({ $!closer.keep if not $!closer });
     # I made this a supply {} but I realised that it is not a supply; emitting
     # messages is one of the things we do, but not the only thing we do.
-    start react { note "Starting message handler"; whenever $!websocket.messages -> $m {
+    start react { note "Starting message handler"; whenever $websocket.messages -> $m {
         my $json = $m.body.result;
 
         if $json<s> {
@@ -136,12 +135,12 @@ method !on_ws_connect($!websocket) {
                 Promise.in(4.rand+1).then({ self.auth });
             }
             when OPCODE::hello {
-                self.auth;
-                self.setup-heartbeat($payload<heartbeat_interval>/1000);
+                self.auth($websocket);
+                self.setup-heartbeat($websocket, $payload<heartbeat_interval>/1000);
             }
             when OPCODE::reconnect {
                 note "reconnect";
-                self.close;
+                self.close($websocket);
                 note "connect ... ";
                 self.connect;
                 note "Stopping message handler";
@@ -174,10 +173,10 @@ method heartbeat($interval --> Supply) {
     }
 }
 
-method setup-heartbeat($interval) {
+method setup-heartbeat($websocket, $interval) {
     start react whenever self.heartbeat($interval) {
         $*ERR.print: "« ♥";
-        $!websocket.send({
+        $websocket.send({
             d => $!sequence,
             op => OPCODE::heartbeat.Int,
         });
@@ -185,8 +184,9 @@ method setup-heartbeat($interval) {
         QUIT {
             when X::API::Discord::Connection::Flatline {
                 $*ERR.print: "💔! 🔌…";
-                self.close;
+                self.close($websocket);
                 self.connect;
+                done;
             }
         }
     };
@@ -200,10 +200,10 @@ method ack-heartbeat-ack {
 }
 
 #| Resumes the session if there was one, or else sends the identify opcode.
-method auth {
+method auth($websocket) {
     if ($!session-id and $!sequence) {
         note "Resuming session $!session-id at sequence $!sequence";
-        $!websocket.send({
+        $websocket.send({
             op => OPCODE::resume.Int,
             d => {
                 token => $!token,
@@ -216,7 +216,7 @@ method auth {
 
     # TODO: There is a gateway bot bootstrap endpoint that tells you things like
     # how many shards to use. We should investigate this
-    $!websocket.send({
+    $websocket.send({
         op => OPCODE::identify.Int,
         d => {
             token => $!token,
@@ -237,12 +237,12 @@ method messages returns Supply {
 }
 
 #| Call this to close the connection, I guess. We don't really use it.
-method close {
+method close($websocket) {
     say "Closing connection";
     $!sequence = Nil;
     $!session-id = Nil;
     $!closer.keep;
-    $!websocket.close(code => 4001);
+    $websocket.close(code => 4001);
     note "closed";
 }
 
