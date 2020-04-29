@@ -105,6 +105,7 @@ method connect {
 }
 
 method !on_ws_connect($websocket) {
+    $!closer = Promise.new;
     $websocket.closer.then({ $!closer.keep if not $!closer });
     # I made this a supply {} but I realised that it is not a supply; emitting
     # messages is one of the things we do, but not the only thing we do.
@@ -159,6 +160,7 @@ method !on_ws_connect($websocket) {
 
 method heartbeat($interval --> Supply) {
     supply {
+        $!hb-ack = Nil;
         whenever Supply.interval($interval) {
             if not $!hb-ack.defined or $!hb-ack {
                 $!hb-ack = Promise.new;
