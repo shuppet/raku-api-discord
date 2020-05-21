@@ -172,21 +172,6 @@ has %.guilds;
 # Kept when all guild IDs we expect to receive have been received. TODO: timeout
 has Promise $!guilds-ready = Promise.new;
 
-method !start-message-tap {
-    start react whenever $!conn.messages -> $message {
-        self!handle-message($message);
-        if $message<t> eq 'MESSAGE_CREATE' {
-            my $m = self.inflate-message($message<d>);
-
-            $!messages.emit($m)
-                unless $message<d><author><id> == $.user.real-id;
-        }
-        else {
-            $!events.emit($message);
-        }
-    }
-}
-
 method !handle-message($message) {
     # TODO - send me an object please
     if $message<t> eq 'GUILD_CREATE' {
@@ -234,7 +219,18 @@ method connect($session-id?, $sequence?) returns Promise {
       |(:$sequence if $sequence),
     );
 
-    return $!conn.opener.then({ self!start-message-tap; $!conn.closer });
+    start react whenever $!conn.messages -> $message {
+        self!handle-message($message);
+        if $message<t> eq 'MESSAGE_CREATE' {
+            my $m = self.inflate-message($message<d>);
+
+            $!messages.emit($m)
+                unless $message<d><author><id> == $.user.real-id;
+        }
+        else {
+            $!events.emit($message);
+        }
+    }
 }
 
 #| Proxies the READY promise on connection. Await this before communicating with
