@@ -23,6 +23,7 @@ submethod TWEAK {
     my $conn = await $!websocket.connect($!ws-url);
     say "WS connected";
 
+    $conn.closer.then: -> { note "Websocket closed :(" }
     start react whenever $conn.messages -> $m {
         my $json = $m.body.result;
 
