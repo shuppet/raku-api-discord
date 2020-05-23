@@ -91,7 +91,9 @@ method connect {
     note "Done";
 
     $!message-source.emit: supply {
+        note "Tapping messages...";
         whenever $websocket.messages -> $m {
+            note $m;
             given $m {
                 when API::Discord::WebSocket::Event::Ready {
                     $!ready.keep;
@@ -105,6 +107,7 @@ method connect {
             note "Sending on: {$m.payload}";
             emit $m.payload;
         }
+        CLOSE note "No more from websocket.";
     };
 }
 
