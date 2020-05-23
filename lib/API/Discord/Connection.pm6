@@ -98,10 +98,12 @@ method connect {
                 }
                 when API::Discord::WebSocket::Event::Disconnected {
                     self.connect;
+                    done;
                 }
-
-                emit $m.payload
             }
+
+            note "Sending on: {$m.payload}";
+            emit $m.payload;
         }
     };
 }
