@@ -16,7 +16,7 @@ has $!sequence is built;
 # the heartbeat itself is in a totally different scope
 has $!hb-ack;
 
-submethod TWEAK {
+submethod TWEAK(--> Nil) {
     state $attempt-no = 0;
     $attempt-no++;
 
