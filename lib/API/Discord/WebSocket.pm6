@@ -12,10 +12,6 @@ has Supply $.messages;
 has $!session-id is built;
 has $!sequence is built;
 
-# I tried to not need this but we have to ack it from the message handler, while
-# the heartbeat itself is in a totally different scope
-has $!hb-ack;
-
 submethod TWEAK(--> Nil) {
     state $attempt-no = 0;
     $attempt-no++;
@@ -24,12 +20,15 @@ submethod TWEAK(--> Nil) {
     say "WS connected";
 
     $!messages = supply {
+        # Set to false when we send a heartbeat, and to true when the heartbeat is acknowledged. If
+        # we don't get an acknowledgement then we know something is wrong.
+        my Bool $heartbeat-acknowledged;
+
         whenever $conn.messages -> $m {
             whenever $m.body -> $json {
                 if $json<s> {
                     $!sequence = $json<s>;
                 }
-
                 my $payload = $json<d>;
                 my $event = $json<t>;
                 # mnemonic: rtfm
@@ -65,7 +64,8 @@ submethod TWEAK(--> Nil) {
                         done;
                     }
                     when OPCODE::heartbeat-ack {
-                        self!ack-heartbeat-ack;
+                        $*ERR.print: "♥ » ";
+                        $heartbeat-acknowledged = True;
                     }
                     default {
                         note "Unhandled opcode $_ ({ OPCODE($_) })";
@@ -81,47 +81,29 @@ submethod TWEAK(--> Nil) {
         }
 
         sub start-heartbeat($interval) {
-            whenever self!setup-heartbeat($interval) {
+            whenever Supply.interval($interval) {
+                # Handle missing acknowledgements.
+                with $heartbeat-acknowledged {
+                    unless $heartbeat-acknowledged {
+                        $*ERR.print: "💔! 🔌…";
+                        emit API::Discord::WebSocket::Event::Disconnected.new:
+                                session-id => $!session-id,
+                                last-sequence-number => $!sequence;
+                        $conn.close;
+                        done;
+                    }
+                }
+
+                # Send heartbeat and set that we're awaiting an acknowledgement.
                 $*ERR.print: "« ♥";
                 $conn.send({
                     d => $!sequence,
                     op => OPCODE::heartbeat.Int,
                 });
-                QUIT {
-                    when X::API::Discord::Connection::Flatline {
-                        $*ERR.print: "💔! 🔌…";
-                        emit API::Discord::WebSocket::Event::Disconnected.new(
-                            session-id => $!session-id,
-                            last-sequence-number => $!sequence
-                         );
-                        done;
-                    }
-                }
+                $heartbeat-acknowledged = False;
             }
         }
     }
-}
-
-method !setup-heartbeat($interval) {
-    supply {
-        $!hb-ack = Nil;
-        whenever Supply.interval($interval) {
-            if not $!hb-ack.defined or $!hb-ack {
-                $!hb-ack = Promise.new;
-                emit $_;
-            }
-            else {
-                X::API::Discord::Connection::Flatline.new.throw
-            }
-        }
-    }
-}
-
-#| Prevents the panic stations we get when we don't hear back from the
-#| heartbeat.
-method !ack-heartbeat-ack {
-    $*ERR.print: "♥ » ";
-    $!hb-ack.keep;
 }
 
 #| Resumes the session if there was one, or else sends the identify opcode.
