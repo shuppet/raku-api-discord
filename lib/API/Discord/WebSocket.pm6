@@ -5,21 +5,33 @@ use Cro::WebSocket::Client;
 
 unit class API::Discord::WebSocket;
 
+#| The WebSocket URL to connect to.
 has $!ws-url is built is required;
+
+#| The access token.
 has $!token is built is required;
+
+#| The Cro WebSocket client used for the connection.
 has Cro::WebSocket::Client $!websocket .= new: :json;
-has Supply $.messages;
-has $!session-id is built;
-has $!sequence is built;
 
-submethod TWEAK(--> Nil) {
-    state $attempt-no = 0;
-    $attempt-no++;
+#| Session ID, set so long as we have a valid/active session.
+has Str $!session-id;
 
+#| The current sequence number, used so we can recover missed messages upon resumption of
+#| an existing session.
+has Int $!sequence;
+
+#| The number of connection attempts we have made.
+has Int $!attempt-no = 0;
+
+#| Establishes a new connection, resuming the session if applicable. Returns a Supply of the
+#| messages emitted on the connection, and is done when the connection ends for some reason
+#| (disconnect of some kind or heartbeat not acknowledged).
+method connection-messages(--> Supply) {
+    $!attempt-no++;
     my $conn = await $!websocket.connect($!ws-url);
     say "WS connected";
-
-    $!messages = supply {
+    return supply {
         # Set to false when we send a heartbeat, and to true when the heartbeat is acknowledged. If
         # we don't get an acknowledgement then we know something is wrong.
         my Bool $heartbeat-acknowledged;
@@ -60,7 +72,7 @@ submethod TWEAK(--> Nil) {
                         note "reconnect";
                         emit API::Discord::WebSocket::Event::Disconnected.new(payload => $json,
                                         session-id => $!session-id, last-sequence-number => $!sequence,);
-                        note "Stopping message handler $attempt-no";
+                        note "Stopping message handler $!attempt-no";
                         done;
                     }
                     when OPCODE::heartbeat-ack {
