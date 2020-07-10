@@ -8,7 +8,7 @@ unit class API::Discord::WebSocket;
 has $!ws-url is built is required;
 has $!token is built is required;
 has Cro::WebSocket::Client $!websocket .= new: :json;
-has Supplier $!messages .= new;
+has Supply $.messages;
 has $!session-id is built;
 has $!sequence is built;
 
@@ -23,7 +23,7 @@ submethod TWEAK(--> Nil) {
     my $conn = await $!websocket.connect($!ws-url);
     say "WS connected";
 
-    start react {
+    $!messages = supply {
         whenever $conn.messages -> $m {
             whenever $m.body -> $json {
                 if $json<s> {
@@ -38,13 +38,11 @@ submethod TWEAK(--> Nil) {
                     when OPCODE::dispatch {
                         if $event eq 'READY' {
                             $!session-id = $payload<session_id>;
-                            $!messages.emit:
-                                    API::Discord::WebSocket::Event::Ready.new(payload => $json);
+                            emit API::Discord::WebSocket::Event::Ready.new(payload => $json);
                         }
                         else {
-                            $!messages.emit:
-                                    # TODO: pick the right class!
-                                    API::Discord::WebSocket::Event.new(payload => $json);
+                            # TODO: pick the right class!
+                            emit API::Discord::WebSocket::Event.new(payload => $json);
                         }
                     }
                     when OPCODE::invalid-session {
@@ -61,8 +59,7 @@ submethod TWEAK(--> Nil) {
                     }
                     when OPCODE::reconnect {
                         note "reconnect";
-                        $!messages.emit:
-                                API::Discord::WebSocket::Event::Disconnected.new(payload => $json,
+                        emit API::Discord::WebSocket::Event::Disconnected.new(payload => $json,
                                         session-id => $!session-id, last-sequence-number => $!sequence,);
                         note "Stopping message handler $attempt-no";
                         done;
@@ -72,7 +69,7 @@ submethod TWEAK(--> Nil) {
                     }
                     default {
                         note "Unhandled opcode $_ ({ OPCODE($_) })";
-                        $!messages.emit: API::Discord::WebSocket::Event.new(payload => $json);
+                        emit API::Discord::WebSocket::Event.new(payload => $json);
                     }
                 }
             }
@@ -93,11 +90,10 @@ submethod TWEAK(--> Nil) {
                 QUIT {
                     when X::API::Discord::Connection::Flatline {
                         $*ERR.print: "💔! 🔌…";
-                        $!messages.emit:
-                                API::Discord::WebSocket::Event::Disconnected.new(
-                                        session-id => $!session-id,
-                                        last-sequence-number => $!sequence,
-                                        );
+                        emit API::Discord::WebSocket::Event::Disconnected.new(
+                            session-id => $!session-id,
+                            last-sequence-number => $!sequence
+                         );
                         done;
                     }
                 }
@@ -159,8 +155,4 @@ method !auth($websocket) {
             shard => [0,1]
         }
     });
-}
-
-method messages returns Supply {
-    $!messages.Supply
 }
