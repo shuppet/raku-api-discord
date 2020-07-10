@@ -188,7 +188,7 @@ method !handle-message($message) {
         # a timeout to keep it.
         if [&&] map *.defined, %.guilds.values {
             say "All guilds ready!";
-            $!guilds-ready.keep;
+            $!guilds-ready.keep unless $!guilds-ready;
         }
     }
     elsif $message<t> eq 'READY' {

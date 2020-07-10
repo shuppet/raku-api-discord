@@ -46,10 +46,13 @@ has Str $.token is required;
 has Int $.shard = 0;
 has Int $.shards-max = 1;
 
+#| The Cro HTTP client used for REST-y stuff.
 has Cro::HTTP::Client $!rest;
-has Supplier $!message-source .= new;
-has Supply $!messages = $!message-source.Supply.migrate;
-has Promise $!hb-ack;
+
+#| The Discord WebScoket object, which parses raw WebSocket messages into Discord
+#| messages, as well as handling protocol details such as sessions, sequences, and
+#| heartbeats. There may be many connections over the lifetime of this object.
+has API::Discord::WebSocket $!websocket .= new(ws-url => $!ws-url, token => $!token);
 
 #| This Promise is kept when Discord has sent us a READY event
 has Promise $.ready = Promise.new;
@@ -78,43 +81,32 @@ submethod TWEAK {
         ]
     )
     but RESTy[$!rest-url];
-
-    self.connect();
 }
 
-# TODO: Make private
-#| Connect to the websocket and handle the Promise. Returns the next Promise.
-#| Can be called again, apparently.
-method connect {
-    note "New websocket connection...";
-    my $websocket = API::Discord::WebSocket.new(ws-url => $!ws-url, token => $!token);
-    note "Done";
+#| A Supply of messages that are not handled by the protocol gubbins. When this is first
+#| tapped, it begins listening on the WebSocket for messages, manages the protocol, and
+#| so forth. Should there be a disconnect, a reconnect will be performed automatically.
+method messages returns Supply {
+    supply {
+        note "Making initial connection";
+        connect();
 
-    $!message-source.emit: supply {
-        note "Tapping messages...";
-        whenever $websocket.messages -> $m {
-            note $m;
-            given $m {
-                when API::Discord::WebSocket::Event::Ready {
-                    $!ready.keep;
-                }
+        sub connect() {
+            whenever $!websocket.connection-messages {
                 when API::Discord::WebSocket::Event::Disconnected {
-                    self.connect;
-                    done;
+                    note "Connection lost; establishing a new one";
+                    connect();
+                }
+                when API::Discord::WebSocket::Event::Ready {
+                    $!ready.keep unless $!ready;
+                    proceed;
+                }
+                default {
+                    emit .payload;
                 }
             }
-
-            note "Sending on: {$m.payload}";
-            emit $m.payload;
         }
-        CLOSE note "No more from websocket.";
-    };
-}
-
-#| Wow, a public method! Tap this to receive messages we didn't handle as part
-#| of the protocol gubbins.
-method messages returns Supply {
-    $!messages;
+    }
 }
 
 #| Gimme your REST client

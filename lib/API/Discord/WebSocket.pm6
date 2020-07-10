@@ -5,132 +5,121 @@ use Cro::WebSocket::Client;
 
 unit class API::Discord::WebSocket;
 
+#| The WebSocket URL to connect to.
 has $!ws-url is built is required;
+
+#| The access token.
 has $!token is built is required;
+
+#| The Cro WebSocket client used for the connection.
 has Cro::WebSocket::Client $!websocket .= new: :json;
-has Supplier $!messages .= new;
-has $!session-id is built;
-has $!sequence is built;
 
-# I tried to not need this but we have to ack it from the message handler, while
-# the heartbeat itself is in a totally different scope
-has $!hb-ack;
+#| Session ID, set so long as we have a valid/active session.
+has Str $!session-id;
 
-submethod TWEAK {
-    state $attempt-no = 0;
-    $attempt-no++;
+#| The current sequence number, used so we can recover missed messages upon resumption of
+#| an existing session.
+has Int $!sequence;
 
+#| The number of connection attempts we have made.
+has Int $!attempt-no = 0;
+
+#| Establishes a new connection, resuming the session if applicable. Returns a Supply of the
+#| messages emitted on the connection, and is done when the connection ends for some reason
+#| (disconnect of some kind or heartbeat not acknowledged).
+method connection-messages(--> Supply) {
+    $!attempt-no++;
     my $conn = await $!websocket.connect($!ws-url);
     say "WS connected";
+    return supply {
+        # Set to false when we send a heartbeat, and to true when the heartbeat is acknowledged. If
+        # we don't get an acknowledgement then we know something is wrong.
+        my Bool $heartbeat-acknowledged;
 
-    $conn.closer.then: -> { note "Websocket closed :(" }
-    start react whenever $conn.messages -> $m {
-        my $json = $m.body.result;
+        whenever $conn.messages -> $m {
+            whenever $m.body -> $json {
+                if $json<s> {
+                    $!sequence = $json<s>;
+                }
+                my $payload = $json<d>;
+                my $event = $json<t>;
+                # mnemonic: rtfm
 
-        if $json<s> {
-            $!sequence = $json<s>;
+                given ($json<op>) {
+                    when OPCODE::dispatch {
+                        if $event eq 'READY' {
+                            $!session-id = $payload<session_id>;
+                            emit API::Discord::WebSocket::Event::Ready.new(payload => $json);
+                        }
+                        else {
+                            # TODO: pick the right class!
+                            emit API::Discord::WebSocket::Event.new(payload => $json);
+                        }
+                    }
+                    when OPCODE::invalid-session {
+                        note "Session invalid. Refreshing.";
+                        $!session-id = Str;
+                        $!sequence = Int;
+                        # Docs say to wait a random amount of time between 1 and 5
+                        # seconds, then re-auth
+                        Promise.in(4.rand + 1).then({ self!auth($conn) });
+                    }
+                    when OPCODE::hello {
+                        self!auth($conn);
+                        start-heartbeat($payload<heartbeat_interval> / 1000);
+                    }
+                    when OPCODE::reconnect {
+                        note "reconnect";
+                        emit API::Discord::WebSocket::Event::Disconnected.new(payload => $json,
+                                        session-id => $!session-id, last-sequence-number => $!sequence,);
+                        note "Stopping message handler $!attempt-no";
+                        done;
+                    }
+                    when OPCODE::heartbeat-ack {
+                        $*ERR.print: "♥ » ";
+                        $heartbeat-acknowledged = True;
+                    }
+                    default {
+                        note "Unhandled opcode $_ ({ OPCODE($_) })";
+                        emit API::Discord::WebSocket::Event.new(payload => $json);
+                    }
+                }
+            }
         }
 
-        my $payload = $json<d>;
-        my $event = $json<t>; # mnemonic: rtfm
+        whenever $conn.closer {
+            note "Websocket closed :(";
+            emit API::Discord::WebSocket::Event::Disconnected.new:
+                    session-id => $!session-id,
+                    last-sequence-number => $!sequence;
+            done;
+        }
 
-        given ($json<op>) {
-            when OPCODE::dispatch {
-                if $event eq 'READY' {
-                    $!session-id = $payload<session_id>;
-                    $!messages.emit:
-                        API::Discord::WebSocket::Event::Ready.new(payload => $json);
+        sub start-heartbeat($interval) {
+            whenever Supply.interval($interval) {
+                # Handle missing acknowledgements.
+                with $heartbeat-acknowledged {
+                    unless $heartbeat-acknowledged {
+                        $*ERR.print: "💔! 🔌…";
+                        emit API::Discord::WebSocket::Event::Disconnected.new:
+                                session-id => $!session-id,
+                                last-sequence-number => $!sequence;
+                        $conn.close;
+                        done;
+                    }
                 }
-                else {
-                    $!messages.emit:
-                        # TODO: pick the right class!
-                        API::Discord::WebSocket::Event.new(payload => $json);
-                }
-            }
-            when OPCODE::invalid-session {
-                note "Session invalid. Refreshing.";
-                $!session-id = Str;
-                $!sequence = Int;
-                # Docs say to wait a random amount of time between 1 and 5
-                # seconds, then re-auth
-                Promise.in(4.rand+1).then({ self!auth($conn) });
-            }
-            when OPCODE::hello {
-                self!auth($conn);
-                self!setup-heartbeat($conn, $payload<heartbeat_interval>/1000);
-            }
-            when OPCODE::reconnect {
-                note "reconnect";
-                $!messages.emit:
-                    API::Discord::WebSocket::Event::Disconnected.new(
-                        payload => $json,
-                        session-id => $!session-id,
-                        last-sequence-number => $!sequence,
-                    );
-                note "Stopping message handler $attempt-no";
-                done;
-            }
-            when OPCODE::heartbeat-ack {
-                self!ack-heartbeat-ack;
-            }
-            default {
-                note "Unhandled opcode $_ ({OPCODE($_)})";
-                $!messages.emit: API::Discord::WebSocket::Event.new(
-                    payload => $json
-                );
+
+                # Send heartbeat and set that we're awaiting an acknowledgement.
+                $*ERR.print: "« ♥";
+                $conn.send({
+                    d => $!sequence,
+                    op => OPCODE::heartbeat.Int,
+                });
+                $heartbeat-acknowledged = False;
             }
         }
     }
 }
-
-method !setup-heartbeat($websocket, $interval) {
-    my $hb = supply {
-        $!hb-ack = Nil;
-        whenever Supply.interval($interval) {
-            if not $!hb-ack.defined or $!hb-ack {
-                $!hb-ack = Promise.new;
-                emit $_;
-            }
-            else {
-                X::API::Discord::Connection::Flatline.new.throw
-            }
-        }
-    };
-
-    start react {
-        whenever $hb {
-            $*ERR.print: "« ♥";
-            $websocket.send({
-                d => $!sequence,
-                op => OPCODE::heartbeat.Int,
-            });
-
-            QUIT {
-                when X::API::Discord::Connection::Flatline {
-                    $*ERR.print: "💔! 🔌…";
-                    $!messages.emit:
-                        API::Discord::WebSocket::Event::Disconnected.new(
-                            session-id => $!session-id,
-                            last-sequence-number => $!sequence,
-                        );
-                    done;
-                }
-            }
-        }
-
-        whenever $websocket.closer {
-            done
-        }
-    }
-}
-
-#| Prevents the panic stations we get when we don't hear back from the
-#| heartbeat.
-method !ack-heartbeat-ack {
-    $*ERR.print: "♥ » ";
-    $!hb-ack.keep;
-}
-
 
 #| Resumes the session if there was one, or else sends the identify opcode.
 method !auth($websocket) {
@@ -163,8 +152,4 @@ method !auth($websocket) {
             shard => [0,1]
         }
     });
-}
-
-method messages returns Supply {
-    $!messages.Supply
 }
