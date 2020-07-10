@@ -47,7 +47,7 @@ has Int $.shard = 0;
 has Int $.shards-max = 1;
 
 has Cro::HTTP::Client $!rest;
-has Supplier $!message-source .= new;
+has Supplier::Preserving $!message-source .= new;
 has Supply $!messages = $!message-source.Supply.migrate;
 has Promise $!hb-ack;
 
