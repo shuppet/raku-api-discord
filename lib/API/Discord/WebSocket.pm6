@@ -57,7 +57,7 @@ submethod TWEAK(--> Nil) {
                     }
                     when OPCODE::hello {
                         self!auth($conn);
-                        self!setup-heartbeat($conn, $payload<heartbeat_interval> / 1000);
+                        start-heartbeat($payload<heartbeat_interval> / 1000);
                     }
                     when OPCODE::reconnect {
                         note "reconnect";
@@ -82,11 +82,32 @@ submethod TWEAK(--> Nil) {
             note "Websocket closed :(";
             done;
         }
+
+        sub start-heartbeat($interval) {
+            whenever self!setup-heartbeat($interval) {
+                $*ERR.print: "« ♥";
+                $conn.send({
+                    d => $!sequence,
+                    op => OPCODE::heartbeat.Int,
+                });
+                QUIT {
+                    when X::API::Discord::Connection::Flatline {
+                        $*ERR.print: "💔! 🔌…";
+                        $!messages.emit:
+                                API::Discord::WebSocket::Event::Disconnected.new(
+                                        session-id => $!session-id,
+                                        last-sequence-number => $!sequence,
+                                        );
+                        done;
+                    }
+                }
+            }
+        }
     }
 }
 
-method !setup-heartbeat($websocket, $interval) {
-    my $hb = supply {
+method !setup-heartbeat($interval) {
+    supply {
         $!hb-ack = Nil;
         whenever Supply.interval($interval) {
             if not $!hb-ack.defined or $!hb-ack {
@@ -97,32 +118,6 @@ method !setup-heartbeat($websocket, $interval) {
                 X::API::Discord::Connection::Flatline.new.throw
             }
         }
-    };
-
-    start react {
-        whenever $hb {
-            $*ERR.print: "« ♥";
-            $websocket.send({
-                d => $!sequence,
-                op => OPCODE::heartbeat.Int,
-            });
-
-            QUIT {
-                when X::API::Discord::Connection::Flatline {
-                    $*ERR.print: "💔! 🔌…";
-                    $!messages.emit:
-                        API::Discord::WebSocket::Event::Disconnected.new(
-                            session-id => $!session-id,
-                            last-sequence-number => $!sequence,
-                        );
-                    done;
-                }
-            }
-        }
-
-        whenever $websocket.closer {
-            done
-        }
     }
 }
 
@@ -132,7 +127,6 @@ method !ack-heartbeat-ack {
     $*ERR.print: "♥ » ";
     $!hb-ack.keep;
 }
-
 
 #| Resumes the session if there was one, or else sends the identify opcode.
 method !auth($websocket) {
