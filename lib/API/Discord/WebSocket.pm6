@@ -23,58 +23,64 @@ submethod TWEAK(--> Nil) {
     my $conn = await $!websocket.connect($!ws-url);
     say "WS connected";
 
-    $conn.closer.then: -> { note "Websocket closed :(" }
-    start react whenever $conn.messages -> $m {
-        whenever $m.body -> $json {
-            if $json<s> {
-                $!sequence = $json<s>;
-            }
+    start react {
+        whenever $conn.messages -> $m {
+            whenever $m.body -> $json {
+                if $json<s> {
+                    $!sequence = $json<s>;
+                }
 
-            my $payload = $json<d>;
-            my $event = $json<t>;
-            # mnemonic: rtfm
+                my $payload = $json<d>;
+                my $event = $json<t>;
+                # mnemonic: rtfm
 
-            given ($json<op>) {
-                when OPCODE::dispatch {
-                    if $event eq 'READY' {
-                        $!session-id = $payload<session_id>;
-                        $!messages.emit:
-                                API::Discord::WebSocket::Event::Ready.new(payload => $json);
+                given ($json<op>) {
+                    when OPCODE::dispatch {
+                        if $event eq 'READY' {
+                            $!session-id = $payload<session_id>;
+                            $!messages.emit:
+                                    API::Discord::WebSocket::Event::Ready.new(payload => $json);
+                        }
+                        else {
+                            $!messages.emit:
+                                    # TODO: pick the right class!
+                                    API::Discord::WebSocket::Event.new(payload => $json);
+                        }
                     }
-                    else {
-                        $!messages.emit:
-                                # TODO: pick the right class!
-                                API::Discord::WebSocket::Event.new(payload => $json);
+                    when OPCODE::invalid-session {
+                        note "Session invalid. Refreshing.";
+                        $!session-id = Str;
+                        $!sequence = Int;
+                        # Docs say to wait a random amount of time between 1 and 5
+                        # seconds, then re-auth
+                        Promise.in(4.rand + 1).then({ self!auth($conn) });
                     }
-                }
-                when OPCODE::invalid-session {
-                    note "Session invalid. Refreshing.";
-                    $!session-id = Str;
-                    $!sequence = Int;
-                    # Docs say to wait a random amount of time between 1 and 5
-                    # seconds, then re-auth
-                    Promise.in(4.rand + 1).then({ self!auth($conn) });
-                }
-                when OPCODE::hello {
-                    self!auth($conn);
-                    self!setup-heartbeat($conn, $payload<heartbeat_interval> / 1000);
-                }
-                when OPCODE::reconnect {
-                    note "reconnect";
-                    $!messages.emit:
-                            API::Discord::WebSocket::Event::Disconnected.new(payload => $json,
-                            session-id => $!session-id, last-sequence-number => $!sequence,);
-                    note "Stopping message handler $attempt-no";
-                    done;
-                }
-                when OPCODE::heartbeat-ack {
-                    self!ack-heartbeat-ack;
-                }
-                default {
-                    note "Unhandled opcode $_ ({ OPCODE($_) })";
-                    $!messages.emit: API::Discord::WebSocket::Event.new(payload => $json);
+                    when OPCODE::hello {
+                        self!auth($conn);
+                        self!setup-heartbeat($conn, $payload<heartbeat_interval> / 1000);
+                    }
+                    when OPCODE::reconnect {
+                        note "reconnect";
+                        $!messages.emit:
+                                API::Discord::WebSocket::Event::Disconnected.new(payload => $json,
+                                        session-id => $!session-id, last-sequence-number => $!sequence,);
+                        note "Stopping message handler $attempt-no";
+                        done;
+                    }
+                    when OPCODE::heartbeat-ack {
+                        self!ack-heartbeat-ack;
+                    }
+                    default {
+                        note "Unhandled opcode $_ ({ OPCODE($_) })";
+                        $!messages.emit: API::Discord::WebSocket::Event.new(payload => $json);
+                    }
                 }
             }
+        }
+
+        whenever $conn.closer {
+            note "Websocket closed :(";
+            done;
         }
     }
 }
