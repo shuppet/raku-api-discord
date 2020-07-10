@@ -89,6 +89,9 @@ method connection-messages(--> Supply) {
 
         whenever $conn.closer {
             note "Websocket closed :(";
+            emit API::Discord::WebSocket::Event::Disconnected.new:
+                    session-id => $!session-id,
+                    last-sequence-number => $!sequence;
             done;
         }
 
