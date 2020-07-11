@@ -8,8 +8,8 @@ sub MAIN($token, $channel-id) {
     $discord.connect;
     await $discord.ready;
 
-    my $channel = await $discord.get-channel($channel-id);
-    
+    my $channel = $discord.get-channel($channel-id);
+
     react {
         whenever Supply.interval(60) {
             $channel.name = '🕒 ' ~ sprintf("%02d:%02d", .hour, .minute) given DateTime.now;
