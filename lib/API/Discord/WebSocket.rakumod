@@ -131,7 +131,7 @@ method !auth($websocket) {
             d => {
                 token => $!token,
                 session_id => $!session-id,
-                sequence => $!sequence,
+                seq => $!sequence,
             }
         });
         return;
