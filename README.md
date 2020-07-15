@@ -51,3 +51,17 @@ sub MAIN($token) {
 }
 ```
 More examples can be found within the [`examples/`](https://github.com/shuppet/p6-api-discord/tree/master/examples) directory of this repository.
+
+## Support
+
+### Official 
+
+Join our official Discord server where we discuss development, bugs and test changes or new features to our library. Please note that this is a volunteer project and we all have real lives, day jobs and other responsiblities outside of the Internet. Replies may not be immediate and a resolution of your problem is not guaranteed outside of valid bug reports (for which raising an [issue](https://github.com/shuppet/p6-api-discord/issues/new) here on GitHub is far preferable).
+
+[![image](https://discordapp.com/api/guilds/502109774901542924/embed.png?style=banner2)](https://discord.gg/8FqQFCF)
+
+### Community
+
+If you have a more general Raku question, or need help with a programming issue then it might be best to join the Raku Discord community instead. Some of the members there are also familiar with `API::Discord` and it's quite likely they'll be able to help you faster than we can. They're also really nice people. :)
+
+[![image](https://discordapp.com/api/guilds/538407879980482560/embed.png?style=banner2)](https://discord.gg/VzYpdQ6)
