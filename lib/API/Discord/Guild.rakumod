@@ -183,12 +183,12 @@ class Member does API::Discord::DataObject {
         @.roles.map(*<permissions>).reduce(&[+|]);
     }
 
-    method has-all-permissions(PERMISSION @permissions) returns Bool {
+    method has-all-permissions(@permissions) returns Bool {
         return True if $.is-owner;
         API::Discord::Permissions::has-all-permissions(self.combined-permissions, @permissions);
     }
 
-    method has-any-permission(PERMISSION @permissions) returns Bool {
+    method has-any-permission(@permissions) returns Bool {
         return True if $.is-owner;
         API::Discord::Permissions::has-any-permission(self.combined-permissions, @permissions);
     }
