@@ -65,6 +65,11 @@ module API::Discord::Endpoints {
             modify-member => '/guilds/{id}/members/{user-id}',
             remove-member => '/guilds/{id}/members/{user-id}',
 
+            list-roles => '/guilds/{id}/roles',
+            add-role => '/guilds/{id}/roles',
+            modify-role => '/guilds/{id}/roles/{role-id}',
+            remove-role => '/guilds/{id}/roles/{role-id}',
+
             get-bans => '/guilds/{id}/bans',
             create-ban => '/guilds/{id}/bans/{user.id}',
             revoke-ban => '/guilds/{id}/bans/{user.id}',
