@@ -32,16 +32,16 @@ enum PERMISSION is export (
     MANAGE_EMOJIS => 0x40000000,
 );
 
-sub create-bitmap(@permissions) { [+|] @permissions }
+our sub create-bitmap(@permissions) { [+|] @permissions }
 
-sub has-all-permissions($perms, @permissions) {
+our sub has-all-permissions($perms, @permissions) {
     my $needed = create-bitmap(@permissions);
     my $intersection = $perms +& $needed;
 
     return $needed == $perms;
 }
 
-sub has-any-permission($perms, @permissions) {
+our sub has-any-permission($perms, @permissions) {
     return ($perms +& create-bitmap(@permissions)).Bool;
 }
 
