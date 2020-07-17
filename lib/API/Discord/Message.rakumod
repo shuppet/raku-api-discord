@@ -17,12 +17,12 @@ class ButReal does API::Discord::DataObject {
     has $.webhook-id;
     has $.type;
 
-    has @.mentions-role-ids;
-    has @.mentions;
+    has $.mentions-role-ids;
+    has $.mentions;
 
     # GET a message and receive embeds plural. SEND a message and you can only send
     # one. I do not know at this point how you can create multiple embeds.
-    has @.embeds;
+    has $.embeds;
     has $.embed;
 
     # Coercions here are not yet implemented

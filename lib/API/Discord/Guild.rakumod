@@ -50,6 +50,7 @@ class ButReal does API::Discord::DataObject {
 }
 
 class Member { ... };
+class Role { ... };
 
 enum MessageNotificationLevel (
     <notification-all-messages notification-only-mentions>
@@ -107,13 +108,19 @@ multi method reify (::?CLASS:D: $data) {
     $!real = $r;
 }
 
-has @.roles;
+has %.roles;
 has @.emojis;
 has @.features;
 has @.voice-states;
 has @.members;
 has @.channels;
 has @.presences;
+
+submethod TWEAK {
+    my $e = endpoint-for(self, 'list-roles');
+    my $roles = $!api.rest.get($e).result.body.result;
+    %!roles = $roles.map: { $_<id> => Role.from-json($_) };
+}
 
 method assign-role($user, *@role-ids) {
     start {
@@ -168,19 +175,23 @@ multi method remove-member(Int $user-id) returns Promise {
     return $.api.rest.delete($e);
 }
 
+method get-role($role-id) returns Role {
+    return %.roles{$role-id};
+}
+
 class Member does API::Discord::DataObject {
     has $.guild;
     has $.user;
     has $.nick;
     has Bool $.is-owner;
-    has @.roles;
+    has $.roles;
     has DateTime $.joined-at;
     has DateTime $.premium-since;
     has Bool $.is-deaf;
     has Bool $.is-mute;
 
     method combined-permissions returns Int {
-        @.roles.map(*<permissions>).reduce(&[+|]);
+        $.roles.map(*.permissions).reduce(&[+|]);
     }
 
     method has-all-permissions(@permissions) returns Bool {
@@ -197,7 +208,7 @@ class Member does API::Discord::DataObject {
     }
 
     method from-json(%json) {
-        my %constructor = %json<nick roles guild>:kv;
+        my %constructor = %json<nick guild>:kv;
         my $api = %constructor<api> = %json<_api>;
 
         %constructor<is-deaf is-mute> = %json<deaf mute>;
@@ -208,9 +219,35 @@ class Member does API::Discord::DataObject {
         %constructor<joined-at> = DateTime.new(%json<joined_at>);
         %constructor<premium-since> = DateTime.new($_) with %json<premium_since>;
 
+        %constructor<roles> = %json<roles>.map: { %json<guild>.get-role($_) };
+
         return self.new(|%constructor);
     }
 }
+
+class Role does API::Discord::DataObject {
+    has $.id;
+    has $.guild;
+    has $.name;
+    has $.permissions;
+    has $.color;
+    has $.hoist;
+    has $.mentionable;
+
+    method to-json {
+        my %self = self.Capture.hash;
+        my %json = %self<name permissions color hoist mentionable>:kv;
+
+        return %json;
+    }
+
+    method from-json (%json) {
+        my %constructor = %json<name permissions color hoist mentionable>:kv;
+
+        return self.new(|%constructor);
+    }
+}
+
 =begin pod
 
 =head1 NAME
