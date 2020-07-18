@@ -273,6 +273,27 @@ class Role does API::Discord::DataObject {
     }
 }
 
+class Ban does API::Discord::DataObject {
+    has $.reason;
+    has $.user-id;
+    has $.delete-message-days;
+
+    method to-json {
+        my %json;
+        %json<reason> = $_ with self.reason;
+        %json<delete_message_days> = $_ with self.delete-message-days;
+
+        return %json;
+    }
+
+    method from-json (%json) {
+        my %constructor = %json<reason>:kv;
+        %constructor<user-id> = %json<user><id>;
+
+        return self.new(|%constructor);
+    }
+}
+
 =begin pod
 
 =head1 NAME
