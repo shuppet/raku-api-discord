@@ -190,9 +190,13 @@ method get-ban(Int $user-id) returns Ban {
     return $.api.rest.get($e);
 }
 
-method create-ban(Int $user-id, Str $reason, Int $delete-message-days) {
+method create-ban(Int $user-id, Str :$reason, Int :$delete-message-days) {
     my $e = endpoint-for( self, 'create-ban', :$user-id );
-    return $.api.rest.put($e, body => { reason => $reason, delete_message_days => $delete-message-days });
+
+    my %body;
+    %body<reason> = $_ with $reason;
+    %body<delete_message_days> = $_ with $delete-message-days;
+    return $.api.rest.put($e, body => %body);
 }
 
 method remove-ban(Int $user-id) {
