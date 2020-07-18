@@ -2,8 +2,17 @@ use API::Discord::Exceptions;
 use API::Discord::Types;
 use API::Discord::WebSocket::Messages;
 use Cro::WebSocket::Client;
+use Cro::WebSocket::BodyParsers;
 
 unit class API::Discord::WebSocket;
+
+class BodyParser
+is Cro::WebSocket::BodyParser::JSON {
+    method parse($message) {
+        my $parsed = callsame;
+        return API::Discord::WebSocket::Message.new($parsed);
+    }
+}
 
 #| The WebSocket URL to connect to.
 has $!ws-url is built is required;
@@ -12,7 +21,9 @@ has $!ws-url is built is required;
 has $!token is built is required;
 
 #| The Cro WebSocket client used for the connection.
-has Cro::WebSocket::Client $!websocket .= new: :json;
+has Cro::WebSocket::Client $!websocket .= new:
+    :json,
+    body-parsers => BodyParser;
 
 #| Session ID, set so long as we have a valid/active session.
 has Str $!session-id;

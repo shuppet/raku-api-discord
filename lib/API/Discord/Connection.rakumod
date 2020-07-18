@@ -3,7 +3,21 @@ use API::Discord::WebSocket::Messages;
 use API::Discord::WebSocket;
 use API::Discord::Comms::BodySerialiser;
 
+use Cro::HTTP::BodySerializer::JSON;
+
 unit class API::Discord::Connection;
+
+class BodySerialiser
+is Cro::HTTP::BodySerializer::JSON {
+    method is-applicable(Cro::HTTP::Message $message, $body --> Bool) {
+        return $body ~~ API::Discord::HTTPResource::JSONy;
+    }
+
+    method serialize(Cro::HTTP::Message $message, $body --> Supply) {
+        my $actual-body = $body.to-json;
+        nextwith $actual-body;
+    }
+}
 
 =begin pod
 
@@ -80,7 +94,7 @@ submethod TWEAK {
             Accept => 'application/json, */*',
             Connection => 'keep-alive',
         ],
-        add-body-serializers => API::Discord::Comms::BodySerialiser.new
+        add-body-serializers => BodySerialiser.new
     )
     but RESTy[$!rest-url];
 }
