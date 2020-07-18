@@ -182,7 +182,9 @@ method get-role($role-id) returns Role {
 
 method get-bans() returns Array {
     my $e = endpoint-for( self, 'get-bans' );
-    return $.api.rest.get($e);
+    my $bans = $.api.rest.get($e).result.body.result;
+
+    return $bans.map({ $_<api> = $.api; Ban.from-json($_) });
 }
 
 method get-ban(Int $user-id) returns Ban {
@@ -192,11 +194,16 @@ method get-ban(Int $user-id) returns Ban {
 
 method create-ban(Int $user-id, Str :$reason, Int :$delete-message-days) {
     my $e = endpoint-for( self, 'create-ban', :$user-id );
+    my $ban = Ban.new(
+        :$user-id,
+       (:$reason if $reason),
+       (:$delete-message-days if $delete-message-days)
+    );
 
-    my %body;
-    %body<reason> = $_ with $reason;
-    %body<delete_message_days> = $_ with $delete-message-days;
-    return $.api.rest.put($e, body => %body);
+    # TODO - the HTTP communication stuff is a bit of a mess. The BodySerialiser
+    # stuff should help, but not all "create" endpoints are post, so for now we
+    # have to call put ourselves.
+    $.api.rest.put($e, body => $ban.to-json);
 }
 
 method remove-ban(Int $user-id) {
