@@ -51,6 +51,7 @@ class ButReal does API::Discord::DataObject {
 
 class Member { ... };
 class Role { ... };
+class Ban { ... };
 
 enum MessageNotificationLevel (
     <notification-all-messages notification-only-mentions>
@@ -177,6 +178,26 @@ multi method remove-member(Int $user-id) returns Promise {
 
 method get-role($role-id) returns Role {
     return %.roles{$role-id};
+}
+
+method get-bans() returns Array {
+    my $e = endpoint-for( self, 'get-bans' );
+    return $.api.rest.get($e);
+}
+
+method get-ban(Int $user-id) returns Ban {
+    my $e = endpoint-for( self, 'get-ban', :$user-id );
+    return $.api.rest.get($e);
+}
+
+method create-ban(Int $user-id, %extra-data) {
+    my $e = endpoint-for( self, 'create-ban', :$user-id );
+    return $.api.rest.put($e, body => %extra-data);
+}
+
+method remove-ban(Int $user-id) {
+    my $e = endpoint-for( self, 'remove-ban', :$user-id );
+    return $.api.rest.delete($e);
 }
 
 class Member does API::Discord::DataObject {

@@ -71,8 +71,9 @@ module API::Discord::Endpoints {
             remove-role => '/guilds/{id}/roles/{role-id}',
 
             get-bans => '/guilds/{id}/bans',
-            create-ban => '/guilds/{id}/bans/{user.id}',
-            revoke-ban => '/guilds/{id}/bans/{user.id}',
+            get-ban => '/guilds/{id}/bans',
+            create-ban => '/guilds/{id}/bans/{user-id}',
+            remove-ban => '/guilds/{id}/bans/{user-id}',
 
             get-prune-count => '/guilds/{id}/prune',
             begin-prune => '/guilds/{id}/prune',
