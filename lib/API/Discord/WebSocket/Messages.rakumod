@@ -1,3 +1,21 @@
+class API::Discord::WebSocket::Message {
+    has $.source;
+    has $.opcode;
+    has $.payload;
+    has $.sequence;
+    has $.event;
+
+    method new($json) {
+        my %it; %it<source> = $json;
+        %it<opcode> = $json<op>;
+        %it<payload> = $json<d>;
+        $json<s> andthen %it<sequence> = $_;
+        $json<t> andthen %it<event> = $_;
+
+        self.bless(|%it);
+    }
+}
+
 class API::Discord::WebSocket::Event {
     enum OPERATION (
         <create update delete>

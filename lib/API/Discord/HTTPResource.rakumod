@@ -188,20 +188,3 @@ enum OPCODE is export (
         invalid-session hello heartbeat-ack>
 );
 
-class HTTPMessage is export {
-    has $.source;
-    has $.opcode;
-    has $.payload;
-    has $.sequence;
-    has $.event;
-
-    method new($json) {
-        my %it; %it<source> = $json;
-        %it<opcode> = $json<op>;
-        %it<payload> = $json<d>;
-        $json<s> andthen %it<sequence> = $_;
-        $json<t> andthen %it<event> = $_;
-
-        self.bless(|%it);
-    }
-}
