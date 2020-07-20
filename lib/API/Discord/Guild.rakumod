@@ -15,17 +15,16 @@ class ButReal does API::Discord::DataObject {
     has $.permissions;
     has $.region;
     has $.afk-channel-id;
-    has $.afk-channel-timeout;
-    has $.is-embeddable;
-    has $.embed-channel-id;
+    has $.afk-timeout;
     has $.verification-level;
-    has $.default-notification-level;
-    has $.content-filter-level;
-    has $.mfa-level-required;
+    has $.default-message-notifications;
+    has $.explicit-content-filter;
+    has $.mfa-level;
     has $.application-id;
     has $.is-widget-enabled;
     has $.widget-channel-id;
     has $.system-channel-id;
+    has $.system-channel-flags;
     has DateTime $.joined-at;
     has $.is-large;
     has $.is-unavailable;
@@ -42,8 +41,20 @@ class ButReal does API::Discord::DataObject {
 
     method from-json (%json) {
         # TODO I guess
-        my %constructor = %json<id name icon splash>:kv;
+        my %constructor = %json<id name icon splash pemissions region>:kv;
+
+        for <
+            owner-id afk-channel-id afk-timeout widget-channel-id
+            verification-level default-message-notifications explicit-content-filter
+            mfa-level application-id system-channel-id system-channel-flags member-count
+        > {
+            %constructor{$_} = %json{ S:g/ "-" /_/ }
+        }
+
         %constructor<is-owner> = %json<owner>;
+        %constructor<is-large> = %json<large>;
+        %constructor<is-unavailable> = %json<unavailable>;
+        %constructor<is-widget-enabled> = %json<widget-enabled>;
 
         return self.new(|%constructor);
     }
@@ -73,7 +84,6 @@ has $.real handles <
     name
     icon
     splash
-    is-owner
     owner-id
     permissions
     region
