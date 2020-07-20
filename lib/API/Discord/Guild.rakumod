@@ -149,7 +149,6 @@ method unassign-role($user, *@role-ids) {
         my $member = self.get-member($user);
 
         $member<roles> = $member<roles>.grep: @role-ids !~~ *;
-        say $member;
 
         await self.update-member($user, { roles => $member<roles> });
     }
