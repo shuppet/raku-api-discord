@@ -256,7 +256,7 @@ class Member does API::Discord::DataObject {
         %constructor<is-deaf is-mute> = %json<deaf mute>;
 
         %constructor<user> = $api.inflate-user(%json<user>);
-        %constructor<owner> = %constructor<guild>.owner-id == %constructor<user>.id;
+        %constructor<is-owner> = %constructor<guild>.owner-id == %constructor<user>.id;
 
         %constructor<joined-at> = DateTime.new(%json<joined_at>);
         %constructor<premium-since> = DateTime.new($_) with %json<premium_since>;
