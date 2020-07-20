@@ -206,8 +206,8 @@ method create-ban(Int $user-id, Str :$reason, Int :$delete-message-days) {
     my $e = endpoint-for( self, 'create-ban', :$user-id );
     my $ban = Ban.new(
         :$user-id,
-       (:$reason if $reason),
-       (:$delete-message-days if $delete-message-days)
+      |(:$reason if $reason),
+      |(:$delete-message-days if $delete-message-days)
     );
 
     # TODO - the HTTP communication stuff is a bit of a mess. The BodySerialiser
