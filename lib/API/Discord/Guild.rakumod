@@ -231,6 +231,10 @@ class Member does API::Discord::DataObject {
     has Bool $.is-deaf;
     has Bool $.is-mute;
 
+    method display-name {
+        return $.nick || $.user.username;
+    }
+
     method combined-permissions returns Int {
         $.roles.map(*.permissions).reduce(&[+|]);
     }
