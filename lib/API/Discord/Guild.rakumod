@@ -15,17 +15,16 @@ class ButReal does API::Discord::DataObject {
     has $.permissions;
     has $.region;
     has $.afk-channel-id;
-    has $.afk-channel-timeout;
-    has $.is-embeddable;
-    has $.embed-channel-id;
+    has $.afk-timeout;
     has $.verification-level;
-    has $.default-notification-level;
-    has $.content-filter-level;
-    has $.mfa-level-required;
+    has $.default-message-notifications;
+    has $.explicit-content-filter;
+    has $.mfa-level;
     has $.application-id;
     has $.is-widget-enabled;
     has $.widget-channel-id;
     has $.system-channel-id;
+    has $.system-channel-flags;
     has DateTime $.joined-at;
     has $.is-large;
     has $.is-unavailable;
@@ -42,8 +41,20 @@ class ButReal does API::Discord::DataObject {
 
     method from-json (%json) {
         # TODO I guess
-        my %constructor = %json<id name icon splash>:kv;
+        my %constructor = %json<id name icon splash pemissions region>:kv;
+
+        for <
+            owner-id afk-channel-id afk-timeout widget-channel-id
+            verification-level default-message-notifications explicit-content-filter
+            mfa-level application-id system-channel-id system-channel-flags member-count
+        > {
+            %constructor{$_} = %json{ S:g/ "-" /_/ }
+        }
+
         %constructor<is-owner> = %json<owner>;
+        %constructor<is-large> = %json<large>;
+        %constructor<is-unavailable> = %json<unavailable>;
+        %constructor<is-widget-enabled> = %json<widget-enabled>;
 
         return self.new(|%constructor);
     }
@@ -51,6 +62,7 @@ class ButReal does API::Discord::DataObject {
 
 class Member { ... };
 class Role { ... };
+class Ban { ... };
 
 enum MessageNotificationLevel (
     <notification-all-messages notification-only-mentions>
@@ -72,7 +84,6 @@ has $.real handles <
     name
     icon
     splash
-    is-owner
     owner-id
     permissions
     region
@@ -138,7 +149,6 @@ method unassign-role($user, *@role-ids) {
         my $member = self.get-member($user);
 
         $member<roles> = $member<roles>.grep: @role-ids !~~ *;
-        say $member;
 
         await self.update-member($user, { roles => $member<roles> });
     }
@@ -179,6 +189,37 @@ method get-role($role-id) returns Role {
     return %.roles{$role-id};
 }
 
+method get-bans() returns Array {
+    my $e = endpoint-for( self, 'get-bans' );
+    my $bans = $.api.rest.get($e).result.body.result;
+
+    return $bans.map({ $_<api> = $.api; Ban.from-json($_) });
+}
+
+method get-ban(Int $user-id) returns Ban {
+    my $e = endpoint-for( self, 'get-ban', :$user-id );
+    return $.api.rest.get($e);
+}
+
+method create-ban(Int $user-id, Str :$reason, Int :$delete-message-days) {
+    my $e = endpoint-for( self, 'create-ban', :$user-id );
+    my $ban = Ban.new(
+        :$user-id,
+      |(:$reason if $reason),
+      |(:$delete-message-days if $delete-message-days)
+    );
+
+    # TODO - the HTTP communication stuff is a bit of a mess. The BodySerialiser
+    # stuff should help, but not all "create" endpoints are post, so for now we
+    # have to call put ourselves.
+    $.api.rest.put($e, body => $ban.to-json);
+}
+
+method remove-ban(Int $user-id) {
+    my $e = endpoint-for( self, 'remove-ban', :$user-id );
+    return $.api.rest.delete($e);
+}
+
 class Member does API::Discord::DataObject {
     has $.guild;
     has $.user;
@@ -214,7 +255,7 @@ class Member does API::Discord::DataObject {
         %constructor<is-deaf is-mute> = %json<deaf mute>;
 
         %constructor<user> = $api.inflate-user(%json<user>);
-        %constructor<owner> = %constructor<guild>.owner-id == %constructor<user>.id;
+        %constructor<is-owner> = %constructor<guild>.owner-id == %constructor<user>.id;
 
         %constructor<joined-at> = DateTime.new(%json<joined_at>);
         %constructor<premium-since> = DateTime.new($_) with %json<premium_since>;
@@ -243,6 +284,27 @@ class Role does API::Discord::DataObject {
 
     method from-json (%json) {
         my %constructor = %json<name permissions color hoist mentionable>:kv;
+
+        return self.new(|%constructor);
+    }
+}
+
+class Ban does API::Discord::DataObject {
+    has $.reason;
+    has $.user-id;
+    has $.delete-message-days;
+
+    method to-json {
+        my %json;
+        %json<reason> = $_ with self.reason;
+        %json<delete_message_days> = $_ with self.delete-message-days;
+
+        return %json;
+    }
+
+    method from-json (%json) {
+        my %constructor = %json<reason>:kv;
+        %constructor<user-id> = %json<user><id>;
 
         return self.new(|%constructor);
     }
