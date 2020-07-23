@@ -13,7 +13,8 @@
         "Cro::WebSocket",
         "Data::Dump",
         "Object::Delayed",
-        "URI::Encode"
+        "URI::Encode",
+        "Subset::Helper"
     ],
     "test-depends": [
         "Test::META"

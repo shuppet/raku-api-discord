@@ -1,6 +1,7 @@
 use Object::Delayed;
 use API::Discord::Object;
 use API::Discord::Endpoints;
+use Subset::Helper;
 
 unit class API::Discord::User does API::Discord::Object is export;
 
@@ -58,6 +59,20 @@ multi method reify (::?CLASS:D: $data) {
 
 submethod TWEAK() {
     $!real-id //= $!id;
+}
+
+my %image-formats = JPEG => '.jpeg', PNG => '.png', WebP => '.webp', GIF => '.gif';
+subset ReallyInt of Numeric where subset-is { $_.Int == $_ };
+subset PowerOfTwo of Int where subset-is { log($_, 2) ~~ ReallyInt };
+subset ImageSize of PowerOfTwo where subset-is 16 <= * <= 4096;
+subset ImageFormat of Str where subset-is * ~~ %image-formats;
+
+method avatar-url( ImageSize :$desired-size, ImageFormat :$format = 'PNG' ) {
+    my $url = $.api.cdn-url ~ '/avatars/' ~ $.real-id ~ '/' ~ $.avatar-hash ~ %image-formats{$format};
+    if $desired-size {
+        $url ~= '?size=' ~ $desired-size
+    }
+    return $url;
 }
 
 method guilds returns Promise {
