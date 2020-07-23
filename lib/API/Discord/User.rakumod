@@ -60,7 +60,7 @@ submethod TWEAK() {
     $!real-id //= $!id;
 }
 
-method guilds($force?) returns Promise {
+method guilds returns Promise {
     if not $!guilds-promise {
         $!guilds-promise = start {
             my @guilds;
@@ -74,8 +74,8 @@ method guilds($force?) returns Promise {
     $!guilds-promise
 }
 
-method dms($force?) returns Promise {
-    if $force or not $!dms-promise {
+method dms returns Promise {
+    if not $!dms-promise {
         $!dms-promise = start {
             my @dms;
             my $e = endpoint-for( self, 'get-dms' ) ;
@@ -85,7 +85,7 @@ method dms($force?) returns Promise {
         }
     }
 
-    $!guilds-promise
+    $!dms-promise
 }
 
 
