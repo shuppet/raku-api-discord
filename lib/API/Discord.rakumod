@@ -146,6 +146,8 @@ has Int $.version = 6;
 has Str $.ws-host = 'gateway.discord.gg';
 #| Host for REST requests
 has Str $.rest-host = 'discordapp.com';
+#| Host for CDN URLs. This is gonna change eventually.
+has Str $.cdn-url = 'https://cdn.discordapp.com';
 #| Bot token or whatever, used for auth.
 has Str $.token is required;
 #| Shard number for this connection

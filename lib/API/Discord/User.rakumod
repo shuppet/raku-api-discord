@@ -67,8 +67,9 @@ subset PowerOfTwo of Int where subset-is { log($_, 2) ~~ ReallyInt };
 subset ImageSize of PowerOfTwo where subset-is 16 <= * <= 4096;
 subset ImageFormat of Str where subset-is * ~~ %image-formats;
 
-method avatar-url( ImageSize :$desired-size, ImageFormat :$format = 'PNG' ) {
-    my $url = $.api.cdn-url ~ '/avatars/' ~ $.real-id ~ '/' ~ $.avatar-hash ~ %image-formats{$format};
+# If I put :$format = 'PNG' it tells me PNG is a Str, not an ImageFormat
+method avatar-url( ImageSize :$desired-size, ImageFormat :$format ) {
+    my $url = $.api.cdn-url ~ '/avatars/' ~ $.real-id ~ '/' ~ $.avatar-hash ~ %image-formats{$format // 'PNG'};
     if $desired-size {
         $url ~= '?size=' ~ $desired-size
     }
