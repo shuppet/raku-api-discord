@@ -231,6 +231,10 @@ class Member does API::Discord::DataObject {
     has Bool $.is-deaf;
     has Bool $.is-mute;
 
+    method user-id {
+        return $.user.id;
+    }
+
     method display-name {
         return $.nick || $.user.username;
     }
