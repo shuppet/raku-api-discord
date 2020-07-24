@@ -1,6 +1,7 @@
 use Object::Delayed;
 use API::Discord::Object;
 use API::Discord::Endpoints;
+use Subset::Helper;
 
 unit class API::Discord::User does API::Discord::Object is export;
 
@@ -60,7 +61,22 @@ submethod TWEAK() {
     $!real-id //= $!id;
 }
 
-method guilds($force?) returns Promise {
+my %image-formats = JPEG => '.jpeg', PNG => '.png', WebP => '.webp', GIF => '.gif';
+subset ReallyInt of Numeric where subset-is { $_.Int == $_ };
+subset PowerOfTwo of Int where subset-is { log($_, 2) ~~ ReallyInt };
+subset ImageSize of PowerOfTwo where subset-is 16 <= * <= 4096;
+subset ImageFormat of Str where subset-is * ~~ %image-formats;
+
+# If I put :$format = 'PNG' it tells me PNG is a Str, not an ImageFormat
+method avatar-url( ImageSize :$desired-size, ImageFormat :$format ) {
+    my $url = $.api.cdn-url ~ '/avatars/' ~ $.real-id ~ '/' ~ $.avatar-hash ~ %image-formats{$format // 'PNG'};
+    if $desired-size {
+        $url ~= '?size=' ~ $desired-size
+    }
+    return $url;
+}
+
+method guilds returns Promise {
     if not $!guilds-promise {
         $!guilds-promise = start {
             my @guilds;
@@ -74,8 +90,8 @@ method guilds($force?) returns Promise {
     $!guilds-promise
 }
 
-method dms($force?) returns Promise {
-    if $force or not $!dms-promise {
+method dms returns Promise {
+    if not $!dms-promise {
         $!dms-promise = start {
             my @dms;
             my $e = endpoint-for( self, 'get-dms' ) ;
@@ -85,7 +101,7 @@ method dms($force?) returns Promise {
         }
     }
 
-    $!guilds-promise
+    $!dms-promise
 }
 
 
