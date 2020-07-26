@@ -32,8 +32,8 @@ p6doc API::Discord
 
 `API::Discord` is designed to do all the hard work for you. Let us handle the connection, authentication, heartbeats, message parsing and all that other boring stuff - leaving you to focus on writing logic for your applications.
 
-```perl6
-#!perl6
+```raku
+#!raku
 
 use API::Discord;
 
