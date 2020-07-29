@@ -262,7 +262,9 @@ class Member does API::Discord::DataObject {
 
         %constructor<is-deaf is-mute> = %json<deaf mute>;
 
-        %constructor<user> = $api.inflate-user(%json<user>);
+        # We discovered this user has no avatar hash for some reason, so just
+        # let it get fetched. It's probably cached anyway.
+        %constructor<user> = $api.get-user(%json<user><id>);
         %constructor<is-owner> = %constructor<guild>.owner-id == %constructor<user>.id;
 
         %constructor<joined-at> = DateTime.new(%json<joined_at>);
