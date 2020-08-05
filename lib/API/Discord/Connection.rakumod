@@ -1,9 +1,8 @@
 use API::Discord::Exceptions;
 use API::Discord::WebSocket::Messages;
 use API::Discord::WebSocket;
-use API::Discord::Comms::BodySerialiser;
 
-use Cro::HTTP::BodySerializer::JSON;
+use Cro::HTTP::BodySerializers;
 
 unit class API::Discord::Connection;
 

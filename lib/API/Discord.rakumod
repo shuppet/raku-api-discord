@@ -176,15 +176,15 @@ has Promise $!guilds-ready = Promise.new;
 
 method !handle-message($message) {
     # TODO - send me an object please
-    if $message<t> eq 'GUILD_CREATE' {
-        for $message<d><channels><> -> $c {
-            $c<guild_id> = $message<d><id>;
+    if $message.event eq 'GUILD_CREATE' {
+        for $message.payload<channels><> -> $c {
+            $c<guild_id> = $message.payload<id>;
             my $id = $c<id>;
             my $chan = Channel.new( id => $id, api => self, real => Channel.reify( $c, self ) );
             %.channels{$id} = $chan;
         }
 
-        %.guilds{$message<d><id>} = self.inflate-guild($message<d>);
+        %.guilds{$message.payload<id>} = self.get-guild($message.payload<id>);
 
         # TODO: We might never get all of the guilds in the READY event. Set up
         # a timeout to keep it.
@@ -193,15 +193,15 @@ method !handle-message($message) {
             $!guilds-ready.keep unless $!guilds-ready;
         }
     }
-    elsif $message<t> eq 'READY' {
+    elsif $message.event eq 'READY' {
         $.user = self.inflate-user(%(
-            |$message<d><user>,
+            |$message.payload<user>,
             id => '@me',
-            real-id => $message<d><user><id>
+            real-id => $message.payload<user><id>
         ));
 
         # Initialise empty objects for later.
-        %.guilds{$_<id>} = Any for $message<d><guilds><>;
+        %.guilds{$_<id>} = Any for $message.payload<guilds><>;
     }
 }
 
@@ -223,11 +223,16 @@ method connect($session-id?, $sequence?) returns Promise {
 
     start react whenever $!conn.messages -> $message {
         self!handle-message($message);
-        if $message<t> eq 'MESSAGE_CREATE' {
-            my $m = self.inflate-message($message<d>);
+        if $message.event eq 'MESSAGE_CREATE' {
+            my $m = Message.new(
+                api => self,
+                id => $message.payload<id>,
+                channel-id => $message.payload<channel_id>,
+                real => Message.reify( $message.payload )
+            );
 
             $!messages.emit($m)
-                unless $message<d><author><id> == $.user.real-id;
+                unless $message.payload<author><id> == $.user.real-id;
         }
         else {
             $!events.emit($message);
@@ -317,7 +322,7 @@ method create-channel (%params) returns Channel {
 }
 
 method get-guild (Any:D $id) returns Guild {
-    %.guilds{$id} //= Guild.new(id => $id, _api => self)
+    %.guilds{$id} //= Guild.new(id => $id, api => self)
 }
 
 method get-guilds (Any:D @guild-ids) returns Array {

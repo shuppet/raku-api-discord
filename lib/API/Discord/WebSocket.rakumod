@@ -3,14 +3,24 @@ use API::Discord::Types;
 use API::Discord::WebSocket::Messages;
 use Cro::WebSocket::Client;
 use Cro::WebSocket::BodyParsers;
+use Cro::WebSocket::BodySerializers;
 
 unit class API::Discord::WebSocket;
+
+enum OPCODE is export (
+    <despatch heartbeat identify status-update
+        voice-state-update voice-ping
+        resume reconnect
+        request-members
+        invalid-session hello heartbeat-ack>
+);
 
 class BodyParser
 is Cro::WebSocket::BodyParser::JSON {
     method parse($message) {
-        my $parsed = callsame;
-        return API::Discord::WebSocket::Message.new($parsed);
+        my $parsed = await callsame;
+        say $parsed;
+        Promise.kept(API::Discord::WebSocket::Message.new($parsed));
     }
 }
 
@@ -22,8 +32,8 @@ has $!token is built is required;
 
 #| The Cro WebSocket client used for the connection.
 has Cro::WebSocket::Client $!websocket .= new:
-    :json,
-    body-parsers => BodyParser;
+    body-parsers => BodyParser,
+    body-serializers => Cro::WebSocket::BodySerializer::JSON;
 
 #| Session ID, set so long as we have a valid/active session.
 has Str $!session-id;
@@ -48,23 +58,18 @@ method connection-messages(--> Supply) {
         my Bool $heartbeat-acknowledged;
 
         whenever $conn.messages -> $m {
-            whenever $m.body -> $json {
-                if $json<s> {
-                    $!sequence = $json<s>;
-                }
-                my $payload = $json<d>;
-                my $event = $json<t>;
-                # mnemonic: rtfm
+            whenever $m.body -> $message {
+                $!sequence = $_ with $message.sequence;
 
-                given ($json<op>) {
-                    when OPCODE::dispatch {
-                        if $event eq 'READY' {
-                            $!session-id = $payload<session_id>;
-                            emit API::Discord::WebSocket::Event::Ready.new(payload => $json);
+                given ($message.opcode) {
+                    when OPCODE::despatch {
+                        if $message.event eq 'READY' {
+                            $!session-id = $message.payload<session_id>;
+                            emit API::Discord::WebSocket::Event::Ready.new(payload => $message);
                         }
                         else {
                             # TODO: pick the right class!
-                            emit API::Discord::WebSocket::Event.new(payload => $json);
+                            emit API::Discord::WebSocket::Event.new(payload => $message);
                         }
                     }
                     when OPCODE::invalid-session {
@@ -77,11 +82,11 @@ method connection-messages(--> Supply) {
                     }
                     when OPCODE::hello {
                         self!auth($conn);
-                        start-heartbeat($payload<heartbeat_interval> / 1000);
+                        start-heartbeat($message.payload<heartbeat_interval> / 1000);
                     }
                     when OPCODE::reconnect {
                         note "reconnect";
-                        emit API::Discord::WebSocket::Event::Disconnected.new(payload => $json,
+                        emit API::Discord::WebSocket::Event::Disconnected.new(payload => $message,
                                         session-id => $!session-id, last-sequence-number => $!sequence,);
                         note "Stopping message handler $!attempt-no";
                         done;
@@ -91,8 +96,8 @@ method connection-messages(--> Supply) {
                         $heartbeat-acknowledged = True;
                     }
                     default {
-                        note "Unhandled opcode $_ ({ OPCODE($_) })";
-                        emit API::Discord::WebSocket::Event.new(payload => $json);
+                        note "Unhandled opcode $_";
+                        emit API::Discord::WebSocket::Event.new(payload => $message);
                     }
                 }
             }
