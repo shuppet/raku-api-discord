@@ -108,7 +108,7 @@ method dms returns Promise {
 method create-dm($user) returns Promise {
     start {
         my $body = { recipient_id => $user.id };
-        my $ret = await $.api.post: endpoint-for(self, 'create-dm'), body => $body;
+        my $ret = await $.api.rest.post: endpoint-for(self, 'create-dm'), body => $body;
         my $dm = await $ret.body;
         $.api.inflate-channel($dm);
     }
