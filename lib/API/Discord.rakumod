@@ -156,6 +156,8 @@ has Str $.token is required;
 has Int $.shard = 0;
 #| Number of shards you're running
 has Int $.shards-max = 1;
+#| Bitmask of intents
+has Int $.intents is required;
 
 # Docs say, increment number each time, per process
 has Int $!snowflake = 0;
@@ -219,6 +221,7 @@ method connect($session-id?, $sequence?) returns Promise {
         :$.token,
         :$.shard,
         :$.shards-max,
+        :$.intents,
       |(:$session-id if $session-id),
       |(:$sequence if $sequence),
     );

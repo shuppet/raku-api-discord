@@ -12,6 +12,9 @@ has $!ws-url is built is required;
 #| The access token.
 has $!token is built is required;
 
+#| A bitmask, all the way from the user
+has $!intents is built is required;
+
 #| The Cro WebSocket client used for the connection.
 has Cro::WebSocket::Client $!websocket .= new: :json;
 
@@ -153,7 +156,8 @@ method !auth($websocket) {
                 '$browser' => 'API::Discord',
                 '$device' => 'API::Discord',
             },
-            shard => [0,1]
+            shard => [0,1],
+            intents => $!intents,
         }
     });
 }
