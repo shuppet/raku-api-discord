@@ -1,7 +1,7 @@
 {
     "name": "API::Discord",
     "description": "Raku module for interacting with the Discord API.",
-    "version": "0.3",
+    "version": "0.4",
     "perl": "6.d",
     "authors": [
         "Alastair 'altreus' Douglas <altreus@altre.us>",
