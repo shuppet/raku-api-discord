@@ -45,11 +45,11 @@
         "X::API::Discord::Connection::Flatline": "lib/API/Discord/Exceptions.rakumod"
     },
     "support": {
-        "bugtracker": "https://github.com/shuppet/p6-api-discord/issues",
-        "source": "https://github.com/shuppet/p6-api-discord.git"
+        "bugtracker": "https://github.com/shuppet/raku-api-discord/issues",
+        "source": "https://github.com/shuppet/raku-api-discord.git"
     },
     "license": "BSD-3-Clause",
-    "source-url": "git://git@github.com/shuppet/p6-api-discord.git",
+    "source-url": "git://git@github.com/shuppet/raku-api-discord.git",
     "repo-type": "git",
     "source-type": "git"
 }
