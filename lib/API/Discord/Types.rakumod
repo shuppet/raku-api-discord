@@ -15,5 +15,5 @@ enum CLOSE-EVENT is export (
 
 
 package ChannelType is export {
-    enum :: <guild-text dm guild-voice group-dm guild-category> ;
+    enum :: <guild-text dm guild-voice group-dm guild-category guild-news guild-store> ;
 }
