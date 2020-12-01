@@ -2,6 +2,7 @@ use Object::Delayed;
 use API::Discord::Object;
 use API::Discord::Endpoints;
 use API::Discord::Permissions;
+use Subset::Helper;
 
 unit class API::Discord::Guild does API::Discord::Object is export;
 
@@ -218,6 +219,20 @@ method create-ban(Int $user-id, Str :$reason, Int :$delete-message-days) {
 method remove-ban(Int $user-id) {
     my $e = endpoint-for( self, 'remove-ban', :$user-id );
     return $.api.rest.delete($e);
+}
+
+my %image-formats = JPEG => '.jpeg', WebP => '.webp', PNG => '.png', GIF => '.gif';
+subset ReallyInt of Numeric where subset-is { $_.Int == $_ };
+subset PowerOfTwo of Int where subset-is { log($_, 2) ~~ ReallyInt };
+subset ImageSize of PowerOfTwo where subset-is 16 <= * <= 4096;
+subset ImageFormat of Str where subset-is * ~~ %image-formats;
+
+method icon-url( ImageSize :$desired-size, ImageFormat :$format ) {
+    my $url = $.api.cdn-url ~ '/icons/' ~ $.id ~ '/' ~ $.icon ~ %image-formats{$format // 'PNG'};
+    if $desired-size {
+        $url ~= '?size=' ~ $desired-size
+    }
+    return $url;
 }
 
 class Member does API::Discord::DataObject {
