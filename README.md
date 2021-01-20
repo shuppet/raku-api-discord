@@ -16,8 +16,8 @@ zef install API::Discord
 ### ... from source
 
 ```
-git clone https://github.com/shuppet/p6-api-discord
-cd p6-api-discord/ && zef install ${PWD}
+git clone https://github.com/shuppet/raku-api-discord
+cd raku-api-discord/ && zef install ${PWD}
 ```
 
 ## Usage
@@ -50,13 +50,13 @@ sub MAIN($token) {
     }
 }
 ```
-More examples can be found within the [`examples/`](https://github.com/shuppet/p6-api-discord/tree/master/examples) directory of this repository.
+More examples can be found within the [`examples/`](https://github.com/shuppet/raku-api-discord/tree/master/examples) directory of this repository.
 
 ## Support
 
 ### Official 
 
-Join our official Discord server where we discuss development, bugs and test changes or new features to our library. Please note that this is a volunteer project and we all have real lives, day jobs and other responsiblities outside of the Internet. Replies may not be immediate and a resolution of your problem is not guaranteed outside of valid bug reports (for which raising an [issue](https://github.com/shuppet/p6-api-discord/issues/new) here on GitHub is far preferable).
+Join our official Discord server where we discuss development, bugs and test changes or new features to our library. Please note that this is a volunteer project and we all have real lives, day jobs and other responsiblities outside of the Internet. Replies may not be immediate and a resolution of your problem is not guaranteed outside of valid bug reports (for which raising an [issue](https://github.com/shuppet/raku-api-discord/issues/new) here on GitHub is far preferable).
 
 [![image](https://discordapp.com/api/guilds/502109774901542924/embed.png?style=banner2)](https://discord.gg/8FqQFCF)
 
