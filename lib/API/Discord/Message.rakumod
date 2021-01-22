@@ -16,6 +16,7 @@ class ButReal does API::Discord::DataObject {
     has $.is-pinned;
     has $.webhook-id;
     has $.type;
+    has $.reference;
 
     has $.mentions-role-ids;
     has $.mentions;
@@ -42,6 +43,8 @@ class ButReal does API::Discord::DataObject {
         %constructor<channel-id is-tts mentions-everyone is-pinned webhook-id mentions-role-ids embeds>
             = %json<channel_id tts mention_everyone pinned webhook_id mention_roles embeds>;
 
+        %constructor<api> = %json<_api>;
+
         # Just store the ID. If we want the real author we can fetch it later. I
         # can't be bothered stitching this sort of thing together just to save a
         # few bytes.
@@ -52,6 +55,14 @@ class ButReal does API::Discord::DataObject {
 
     #    %constructor<attachments> = $json<attachments>.map: self.create-attachment($_);
     #    %constructor<reactions> = $json<reactions>.map: self.create-reaction($_);
+
+        if %json<message_reference> {
+            %constructor<reference> = API::Discord::Message.new(
+                id => %json<message_reference><message_id>,
+                channel-id => %json<message_reference><channel_id>,
+                api => %json<_api>,
+            );
+        }
 
         return self.new(|%constructor.Map);
     }
@@ -73,6 +84,13 @@ class ButReal does API::Discord::DataObject {
 
         for <mentions attachments reactions> -> $prop {
             %self{$prop} andthen %json{$prop} = [map *.to-json, $_.values]
+        }
+
+        if %self<reference> {
+            %json<message_reference> = {
+                message_id => %self<reference>.id,
+                channel_id => %self<reference>.channel-id,
+            };
         }
 
         return %json;
@@ -119,6 +137,7 @@ enum Type (
 # Both id and channel id are required to fetch a message.
 # The Object role gives us id.
 has $.channel-id is required;
+has $.reference;
 has $.real handles <
     author-id
     nonce
@@ -132,7 +151,7 @@ has $.real handles <
     type
     timestamp
     edited
-> = slack { await API::Discord::Message::ButReal.read({:$!channel-id, :$!id, :$!api}, $!api.rest) };
+> = slack { await API::Discord::Message::ButReal.read({:$!channel-id, :$!id, :$!reference, :$!api}, $!api.rest) };
 
 # Events from the API specifically for this message.
 has Supplier $!events = Supplier.new;
@@ -144,16 +163,17 @@ has @.attachments;
 # (We can use Emoji objects as the keys if we want)
 has @.reactions;
 
-submethod BUILD (:$!id, :$!channel-id, :$!api, :$!real, *%real-properties is copy) {
+submethod BUILD (:$!id, :$!channel-id, :$!api, :$!reference, :$!real, *%real-properties is copy) {
     if $!real and %real-properties {
         die "Provided a real object, but also properties to make one!"
     }
 
-    if (%real-properties) {
+    # Leave the whole hash unset if nothing else is provided (or $!real was already
+    # provided), because it'll construct itself if necessary
+    if %real-properties {
         %real-properties<channel-id> = $!channel-id;
+        %real-properties<reference> = $!reference;
 
-        # Leave it unset if nothing else is provided (or it was already provided),
-        # so it constructs itself
         $!real = ButReal.new(|%real-properties);
     }
 
@@ -206,7 +226,15 @@ method author {
     $.api.get-user($.author-id);
 }
 
-#| Inflates the Message object from the JSON we get from Discord
+#| Send a reply, where the client knows the message that was replied to
+method reply($content) {
+    $.channel.send-message($content, reference => self);
+}
+
+#| Send a message to the same channel, otherwise not linked to this message.
+method respond($content) {
+    $.channel.send-message($content);
+}
 
 =begin pod
 
