@@ -89,7 +89,7 @@ method connection-messages(--> Supply) {
 
         whenever $conn.closer -> $close {
             my $blob = await $close.body-blob;
-            my $code = $blob.read-int16(0, BigEndian);
+            my $code = $blob.read-uint16(0, BigEndian);
 
             note "Websocket closed :( ($code)";
             emit API::Discord::WebSocket::Event::Disconnected.new:
