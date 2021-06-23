@@ -2,6 +2,7 @@ use API::Discord::Exceptions;
 use API::Discord::Types;
 use API::Discord::WebSocket::Messages;
 use Cro::WebSocket::Client;
+use API::Discord::Debug <FROM-MODULE>;
 
 unit class API::Discord::WebSocket;
 
@@ -30,7 +31,7 @@ has Int $!attempt-no = 0;
 method connection-messages(--> Supply) {
     $!attempt-no++;
     my $conn = await $!websocket.connect($!ws-url);
-    say "WS connected";
+    debug-say "WS connected";
     return supply {
         # Set to false when we send a heartbeat, and to true when the heartbeat is acknowledged. If
         # we don't get an acknowledgement then we know something is wrong.
@@ -57,7 +58,7 @@ method connection-messages(--> Supply) {
                         }
                     }
                     when OPCODE::invalid-session {
-                        note "Session invalid. Refreshing.";
+                        debug-say "Session invalid. Refreshing.";
                         $!session-id = Str;
                         $!sequence = Int;
                         # Docs say to wait a random amount of time between 1 and 5
@@ -69,18 +70,18 @@ method connection-messages(--> Supply) {
                         start-heartbeat($payload<heartbeat_interval> / 1000);
                     }
                     when OPCODE::reconnect {
-                        note "reconnect";
+                        debug-say "reconnect";
                         emit API::Discord::WebSocket::Event::Disconnected.new(payload => $json,
                                         session-id => $!session-id, last-sequence-number => $!sequence,);
-                        note "Stopping message handler $!attempt-no";
+                        debug-say "Stopping message handler $!attempt-no";
                         done;
                     }
                     when OPCODE::heartbeat-ack {
-                        $*ERR.print: "♥ » ";
+                        debug-print "♥ » ";
                         $heartbeat-acknowledged = True;
                     }
                     default {
-                        note "Unhandled opcode $_ ({ OPCODE($_) })";
+                        debug-say "Unhandled opcode $_ ({ OPCODE($_) })";
                         emit API::Discord::WebSocket::Event.new(payload => $json);
                     }
                 }
@@ -91,7 +92,7 @@ method connection-messages(--> Supply) {
             my $blob = await $close.body-blob;
             my $code = $blob.read-uint16(0, BigEndian);
 
-            note "Websocket closed :( ($code)";
+            debug-say "Websocket closed :( ($code)";
             emit API::Discord::WebSocket::Event::Disconnected.new:
                     session-id => $!session-id,
                     last-sequence-number => $!sequence;
@@ -103,7 +104,7 @@ method connection-messages(--> Supply) {
                 # Handle missing acknowledgements.
                 with $heartbeat-acknowledged {
                     unless $heartbeat-acknowledged {
-                        $*ERR.print: "💔! 🔌…";
+                        debug-print "💔! 🔌…";
                         emit API::Discord::WebSocket::Event::Disconnected.new:
                                 session-id => $!session-id,
                                 last-sequence-number => $!sequence;
@@ -113,7 +114,7 @@ method connection-messages(--> Supply) {
                 }
 
                 # Send heartbeat and set that we're awaiting an acknowledgement.
-                $*ERR.print: "« ♥";
+                debug-print "« ♥";
                 $conn.send({
                     d => $!sequence,
                     op => OPCODE::heartbeat.Int,
@@ -126,9 +127,9 @@ method connection-messages(--> Supply) {
 
 #| Resumes the session if there was one, or else sends the identify opcode.
 method !auth($websocket) {
-    note "Auth...";
+    debug-say "Auth...";
     if ($!session-id and $!sequence) {
-        note "Resuming session $!session-id at sequence $!sequence";
+        debug-say "Resuming session $!session-id at sequence $!sequence";
         $websocket.send({
             op => OPCODE::resume.Int,
             d => {
@@ -142,7 +143,7 @@ method !auth($websocket) {
 
     # TODO: There is a gateway bot bootstrap endpoint that tells you things like
     # how many shards to use. We should investigate this
-    note "New session...";
+    debug-say "New session...";
     $websocket.send({
         op => OPCODE::identify.Int,
         d => {

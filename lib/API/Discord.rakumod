@@ -6,6 +6,7 @@ use API::Discord::Channel;
 use API::Discord::Guild;
 use API::Discord::Message;
 use API::Discord::User;
+use API::Discord::Debug <FROM-MODULE>;
 
 use Cro::WebSocket::Client;
 use Cro::WebSocket::Client::Connection;
@@ -26,6 +27,7 @@ of messages and other events to which your app can listen.
 =head1 SYNOPSIS
 
     use API::Discord;
+    use API::Discord::Debug; # remove to disable debug output
 
     my $d = API::Discord.new(:token(my-bot-token));
 
@@ -189,7 +191,7 @@ method !handle-message($message) {
         # TODO: We might never get all of the guilds in the READY event. Set up
         # a timeout to keep it.
         if [&&] map *.defined, %.guilds.values {
-            say "All guilds ready!";
+            debug-say "All guilds ready!";
             $!guilds-ready.keep unless $!guilds-ready;
         }
     }

@@ -42,6 +42,7 @@
     "API::Discord::User::ButReal": "lib/API/Discord/User.rakumod",
     "API::Discord::WebSocket": "lib/API/Discord/WebSocket.rakumod",
     "API::Discord::WebSocket::Messages": "lib/API/Discord/WebSocket/Messages.rakumod",
+    "API::Discord::Debug": "lib/API/Discord/Debug.rakumod",
     "X::API::Discord::Connection::Flatline": "lib/API/Discord/Exceptions.rakumod",
     "X::API::Discord::Endpoint::NotEnoughArguments": "lib/API/Discord/Endpoints.rakumod"
   },
