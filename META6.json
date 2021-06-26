@@ -26,6 +26,7 @@
     "API::Discord::Channel::ButReal": "lib/API/Discord/Channel.rakumod",
     "API::Discord::Connection": "lib/API/Discord/Connection.rakumod",
     "API::Discord::DataObject": "lib/API/Discord/Object.rakumod",
+    "API::Discord::Debug": "lib/API/Discord/Debug.rakumod",
     "API::Discord::Endpoints": "lib/API/Discord/Endpoints.rakumod",
     "API::Discord::Exceptions": "lib/API/Discord/Exceptions.rakumod",
     "API::Discord::Guild": "lib/API/Discord/Guild.rakumod",
@@ -42,7 +43,6 @@
     "API::Discord::User::ButReal": "lib/API/Discord/User.rakumod",
     "API::Discord::WebSocket": "lib/API/Discord/WebSocket.rakumod",
     "API::Discord::WebSocket::Messages": "lib/API/Discord/WebSocket/Messages.rakumod",
-    "API::Discord::Debug": "lib/API/Discord/Debug.rakumod",
     "X::API::Discord::Connection::Flatline": "lib/API/Discord/Exceptions.rakumod",
     "X::API::Discord::Endpoint::NotEnoughArguments": "lib/API/Discord/Endpoints.rakumod"
   },
