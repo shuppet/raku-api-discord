@@ -31,7 +31,7 @@ has Int $!attempt-no = 0;
 method connection-messages(--> Supply) {
     $!attempt-no++;
     my $conn = await $!websocket.connect($!ws-url);
-    debug-say "WS connected";
+    debug-say("WS connected" but WEBSOCKET);
     return supply {
         # Set to false when we send a heartbeat, and to true when the heartbeat is acknowledged. If
         # we don't get an acknowledgement then we know something is wrong.
@@ -58,7 +58,7 @@ method connection-messages(--> Supply) {
                         }
                     }
                     when OPCODE::invalid-session {
-                        debug-say "Session invalid. Refreshing.";
+                        debug-say("Session invalid. Refreshing." but WEBSOCKET);
                         $!session-id = Str;
                         $!sequence = Int;
                         # Docs say to wait a random amount of time between 1 and 5
@@ -70,18 +70,18 @@ method connection-messages(--> Supply) {
                         start-heartbeat($payload<heartbeat_interval> / 1000);
                     }
                     when OPCODE::reconnect {
-                        debug-say "reconnect";
+                        debug-say("reconnect" but WEBSOCKET);
                         emit API::Discord::WebSocket::Event::Disconnected.new(payload => $json,
                                         session-id => $!session-id, last-sequence-number => $!sequence,);
                         debug-say "Stopping message handler $!attempt-no";
                         done;
                     }
                     when OPCODE::heartbeat-ack {
-                        debug-print "♥ » ";
+                        debug-print("♥ » " but PONG);
                         $heartbeat-acknowledged = True;
                     }
                     default {
-                        debug-say "Unhandled opcode $_ ({ OPCODE($_) })";
+                        debug-say("Unhandled opcode $_ ({ OPCODE($_) })" but WEBSOCKET);
                         emit API::Discord::WebSocket::Event.new(payload => $json);
                     }
                 }
@@ -92,7 +92,7 @@ method connection-messages(--> Supply) {
             my $blob = await $close.body-blob;
             my $code = $blob.read-uint16(0, BigEndian);
 
-            debug-say "Websocket closed :( ($code)";
+            debug-say("Websocket closed :( ($code)" but WEBSOCKET);
             emit API::Discord::WebSocket::Event::Disconnected.new:
                     session-id => $!session-id,
                     last-sequence-number => $!sequence;
@@ -104,7 +104,7 @@ method connection-messages(--> Supply) {
                 # Handle missing acknowledgements.
                 with $heartbeat-acknowledged {
                     unless $heartbeat-acknowledged {
-                        debug-print "💔! 🔌…";
+                        debug-say('heartbeat lost' but HEARTBEAT);
                         emit API::Discord::WebSocket::Event::Disconnected.new:
                                 session-id => $!session-id,
                                 last-sequence-number => $!sequence;
@@ -114,7 +114,7 @@ method connection-messages(--> Supply) {
                 }
 
                 # Send heartbeat and set that we're awaiting an acknowledgement.
-                debug-print "« ♥";
+                debug-print("« ♥" but PONG);
                 $conn.send({
                     d => $!sequence,
                     op => OPCODE::heartbeat.Int,
@@ -127,7 +127,7 @@ method connection-messages(--> Supply) {
 
 #| Resumes the session if there was one, or else sends the identify opcode.
 method !auth($websocket) {
-    debug-say "Auth...";
+    debug-say("Auth..." but WEBSOCKET);
     if ($!session-id and $!sequence) {
         debug-say "Resuming session $!session-id at sequence $!sequence";
         $websocket.send({
@@ -143,7 +143,7 @@ method !auth($websocket) {
 
     # TODO: There is a gateway bot bootstrap endpoint that tells you things like
     # how many shards to use. We should investigate this
-    debug-say "New session...";
+    debug-say("New session..." but WEBSOCKET);
     $websocket.send({
         op => OPCODE::identify.Int,
         d => {
