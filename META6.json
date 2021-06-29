@@ -1,55 +1,63 @@
 {
-    "name": "API::Discord",
-    "description": "Raku module for interacting with the Discord API.",
-    "version": "0.6",
-    "perl": "6.d",
-    "authors": [
-        "Alastair 'altreus' Douglas <altreus@altre.us>",
-        "Jonathan 'jnthn' Worthington <jnthn@jnthn.net>",
-        "Kane 'kawaii' Valentine <kane@cute.im>"
-    ],
-    "auth": "github:shuppet",
-    "depends": [
-        "Cro::WebSocket",
-        "Data::Dump",
-        "Object::Delayed",
-        "URI::Encode",
-        "Subset::Helper"
-    ],
-    "test-depends": [
-        "Test::META"
-    ],
-    "provides": {
-        "API::Discord": "lib/API/Discord.rakumod",
-        "API::Discord::Channel": "lib/API/Discord/Channel.rakumod",
-        "API::Discord::Channel::ButReal": "lib/API/Discord/Channel.rakumod",
-        "API::Discord::Connection": "lib/API/Discord/Connection.rakumod",
-        "API::Discord::Endpoints": "lib/API/Discord/Endpoints.rakumod",
-        "API::Discord::Exceptions": "lib/API/Discord/Exceptions.rakumod",
-        "API::Discord::Guild": "lib/API/Discord/Guild.rakumod",
-        "API::Discord::Guild::ButReal": "lib/API/Discord/Guild.rakumod",
-        "API::Discord::HTTPResource": "lib/API/Discord/HTTPResource.rakumod",
-        "API::Discord::JSONy": "lib/API/Discord/HTTPResource.rakumod",
-        "API::Discord::Message": "lib/API/Discord/Message.rakumod",
-        "API::Discord::Message::ButReal": "lib/API/Discord/Message.rakumod",
-        "API::Discord::DataObject": "lib/API/Discord/Object.rakumod",
-        "API::Discord::Object": "lib/API/Discord/Object.rakumod",
-        "API::Discord::Permissions": "lib/API/Discord/Permissions.rakumod",
-        "API::Discord::RESTy": "lib/API/Discord/HTTPResource.rakumod",
-        "API::Discord::Types": "lib/API/Discord/Types.rakumod",
-        "API::Discord::User": "lib/API/Discord/User.rakumod",
-        "API::Discord::User::ButReal": "lib/API/Discord/User.rakumod",
-        "API::Discord::WebSocket": "lib/API/Discord/WebSocket.rakumod",
-        "API::Discord::WebSocket::Messages": "lib/API/Discord/WebSocket/Messages.rakumod",
-        "X::API::Discord::Endpoint::NotEnoughArguments": "lib/API/Discord/Endpoints.rakumod",
-        "X::API::Discord::Connection::Flatline": "lib/API/Discord/Exceptions.rakumod"
-    },
-    "support": {
-        "bugtracker": "https://github.com/shuppet/raku-api-discord/issues",
-        "source": "https://github.com/shuppet/raku-api-discord.git"
-    },
-    "license": "BSD-3-Clause",
-    "source-url": "git://git@github.com/shuppet/raku-api-discord.git",
-    "repo-type": "git",
-    "source-type": "git"
+  "auth": "github:shuppet",
+  "authors": [
+    "Alastair 'altreus' Douglas <altreus@altre.us>",
+    "Jonathan 'jnthn' Worthington <jnthn@jnthn.net>",
+    "Kane 'kawaii' Valentine <kane@cute.im>"
+  ],
+  "build-depends": [
+  ],
+  "depends": [
+    "Cro::WebSocket",
+    "Data::Dump",
+    "Object::Delayed",
+    "URI::Encode",
+    "Subset::Helper",
+    "Test::META"
+  ],
+  "description": "Raku module for interacting with the Discord API.",
+  "license": "BSD-3-Clause",
+  "meta-version": "0",
+  "name": "API::Discord",
+  "perl": "6.d",
+  "provides": {
+    "API::Discord": "lib/API/Discord.rakumod",
+    "API::Discord::Channel": "lib/API/Discord/Channel.rakumod",
+    "API::Discord::Channel::ButReal": "lib/API/Discord/Channel.rakumod",
+    "API::Discord::Connection": "lib/API/Discord/Connection.rakumod",
+    "API::Discord::DataObject": "lib/API/Discord/Object.rakumod",
+    "API::Discord::Debug": "lib/API/Discord/Debug.rakumod",
+    "API::Discord::Endpoints": "lib/API/Discord/Endpoints.rakumod",
+    "API::Discord::Exceptions": "lib/API/Discord/Exceptions.rakumod",
+    "API::Discord::Guild": "lib/API/Discord/Guild.rakumod",
+    "API::Discord::Guild::ButReal": "lib/API/Discord/Guild.rakumod",
+    "API::Discord::HTTPResource": "lib/API/Discord/HTTPResource.rakumod",
+    "API::Discord::JSONy": "lib/API/Discord/HTTPResource.rakumod",
+    "API::Discord::Message": "lib/API/Discord/Message.rakumod",
+    "API::Discord::Message::ButReal": "lib/API/Discord/Message.rakumod",
+    "API::Discord::Object": "lib/API/Discord/Object.rakumod",
+    "API::Discord::Permissions": "lib/API/Discord/Permissions.rakumod",
+    "API::Discord::RESTy": "lib/API/Discord/HTTPResource.rakumod",
+    "API::Discord::Types": "lib/API/Discord/Types.rakumod",
+    "API::Discord::User": "lib/API/Discord/User.rakumod",
+    "API::Discord::User::ButReal": "lib/API/Discord/User.rakumod",
+    "API::Discord::WebSocket": "lib/API/Discord/WebSocket.rakumod",
+    "API::Discord::WebSocket::Messages": "lib/API/Discord/WebSocket/Messages.rakumod",
+    "X::API::Discord::Connection::Flatline": "lib/API/Discord/Exceptions.rakumod",
+    "X::API::Discord::Endpoint::NotEnoughArguments": "lib/API/Discord/Endpoints.rakumod"
+  },
+  "raku": null,
+  "resources": [
+  ],
+  "source-url": "git://git@github.com/shuppet/raku-api-discord.git",
+  "support": {
+    "bugtracker": "https://github.com/shuppet/raku-api-discord/issues",
+    "source": "https://github.com/shuppet/raku-api-discord.git"
+  },
+  "tags": [
+  ],
+  "test-depends": [
+    "Test::META"
+  ],
+  "version": "0.6"
 }

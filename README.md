@@ -36,6 +36,7 @@ p6doc API::Discord
 #!raku
 
 use API::Discord;
+use API::Discord::Debug; # remove to disable debug output
 
 sub MAIN($token) {
     my $discord = API::Discord.new(:$token);

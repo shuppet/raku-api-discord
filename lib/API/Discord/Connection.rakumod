@@ -1,6 +1,7 @@
 use API::Discord::Exceptions;
 use API::Discord::WebSocket::Messages;
 use API::Discord::WebSocket;
+use API::Discord::Debug <FROM-MODULE>;
 
 unit class API::Discord::Connection;
 
@@ -88,13 +89,13 @@ submethod TWEAK {
 #| so forth. Should there be a disconnect, a reconnect will be performed automatically.
 method messages returns Supply {
     supply {
-        note "Making initial connection";
+        debug-say("Making initial connection" but CONNECTION);
         connect();
 
         sub connect() {
             whenever $!websocket.connection-messages {
                 when API::Discord::WebSocket::Event::Disconnected {
-                    note "Connection lost; establishing a new one";
+                    debug-say("Connection lost; establishing a new one" but CONNECTION);
                     connect();
                 }
                 when API::Discord::WebSocket::Event::Ready {
