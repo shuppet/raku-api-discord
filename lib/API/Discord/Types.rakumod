@@ -43,6 +43,10 @@ enum INTENT is export (
     direct-messages         => 1 +< 12,
     direct-message-reactions=> 1 +< 13,
     direct-message-typing   => 1 +< 14,
+    message-content         => 1 +< 15,
+    guild-scheduled-events  => 1 +< 16,
+    auto-moderation-configuration => 1 +< 20,
+    auto-moderation-execution     => 1 +< 21,
 );
 
 package ChannelType is export {
