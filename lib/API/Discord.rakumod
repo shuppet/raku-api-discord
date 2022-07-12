@@ -157,7 +157,7 @@ has Int $.shard = 0;
 #| Number of shards you're running
 has Int $.shards-max = 1;
 #| Bitmask of intents
-has Int $.intents is required;
+has Int $.intents =([+|] INTENT::guild-messages, INTENT::guild-message-reactions, INTENT::message-content);
 
 # Docs say, increment number each time, per process
 has Int $!snowflake = 0;
