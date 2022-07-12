@@ -1,6 +1,6 @@
-use API::Discord::Types;
 use API::Discord::Connection;
 use API::Discord::HTTPResource;
+use API::Discord::Intents;
 
 use API::Discord::Channel;
 use API::Discord::Guild;
@@ -157,7 +157,7 @@ has Int $.shard = 0;
 #| Number of shards you're running
 has Int $.shards-max = 1;
 #| Bitmask of intents
-has Int $.intents =([+|] INTENT::guild-messages, INTENT::guild-message-reactions, INTENT::message-content);
+has Int $.intents = ([+|] guild-messages, guild-message-reactions, message-content);
 
 # Docs say, increment number each time, per process
 has Int $!snowflake = 0;
