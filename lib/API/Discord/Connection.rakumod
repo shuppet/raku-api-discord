@@ -1,7 +1,10 @@
+use API::Discord::Debug <FROM-MODULE>;
 use API::Discord::Exceptions;
+use API::Discord::HTTPResource;
+use API::Discord::Types;
 use API::Discord::WebSocket::Messages;
 use API::Discord::WebSocket;
-use API::Discord::Debug <FROM-MODULE>;
+use Cro::HTTP::Client;
 
 unit class API::Discord::Connection;
 
@@ -32,17 +35,14 @@ This is used internally and probably of limited use otherwise.
 
 =end pod
 
-use API::Discord::Types;
-use API::Discord::HTTPResource;
-# Probably make API::Discord::Connection::WS later for hb etc
-use Cro::HTTP::Client;
-
 #| Websocket URL
 has Str $.ws-url is required;
 #| REST URL
 has Str $.rest-url is required;
 #| User's bot/API token
 has Str $.token is required;
+#| See discord docs on intents
+has Int $.intents is required;
 #| Allows multiple instances to run the same bot
 has Int $.shard = 0;
 has Int $.shards-max = 1;
@@ -50,10 +50,14 @@ has Int $.shards-max = 1;
 #| The Cro HTTP client used for REST-y stuff.
 has Cro::HTTP::Client $!rest;
 
-#| The Discord WebScoket object, which parses raw WebSocket messages into Discord
+#| The Discord WebSocket object, which parses raw WebSocket messages into Discord
 #| messages, as well as handling protocol details such as sessions, sequences, and
 #| heartbeats. There may be many connections over the lifetime of this object.
-has API::Discord::WebSocket $!websocket .= new(ws-url => $!ws-url, token => $!token);
+has API::Discord::WebSocket $!websocket .= new(
+    :$!ws-url,
+    :$!token,
+    :$!intents,
+);
 
 #| This Promise is kept when Discord has sent us a READY event
 has Promise $.ready = Promise.new;

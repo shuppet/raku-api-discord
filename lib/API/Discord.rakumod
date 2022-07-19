@@ -1,6 +1,6 @@
-use API::Discord::Types;
 use API::Discord::Connection;
 use API::Discord::HTTPResource;
+use API::Discord::Intents;
 
 use API::Discord::Channel;
 use API::Discord::Guild;
@@ -143,7 +143,7 @@ By default, the connection will assume you have only one shard.
 has Connection $!conn;
 
 #| The API version to use. Defaults to 6 but can be overridden if the API moves on without us.
-has Int $.version = 6;
+has Int $.version = 8;
 #| Host to which to connect. Can be overridden for testing e.g.
 has Str $.ws-host = 'gateway.discord.gg';
 #| Host for REST requests
@@ -156,6 +156,8 @@ has Str $.token is required;
 has Int $.shard = 0;
 #| Number of shards you're running
 has Int $.shards-max = 1;
+#| Bitmask of intents
+has Int $.intents = ([+|] guilds, guild-messages, guild-message-reactions, message-content);
 
 # Docs say, increment number each time, per process
 has Int $!snowflake = 0;
@@ -219,6 +221,7 @@ method connect($session-id?, $sequence?) returns Promise {
         :$.token,
         :$.shard,
         :$.shards-max,
+        :$.intents,
       |(:$session-id if $session-id),
       |(:$sequence if $sequence),
     );
