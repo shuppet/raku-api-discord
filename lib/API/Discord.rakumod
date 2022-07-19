@@ -142,8 +142,8 @@ By default, the connection will assume you have only one shard.
 
 has Connection $!conn;
 
-#| The API version to use. Defaults to 6 but can be overridden if the API moves on without us.
-has Int $.version = 8;
+#| The API version to use. I suppose we should try to keep this up to date.
+has Int $.version = 10;
 #| Host to which to connect. Can be overridden for testing e.g.
 has Str $.ws-host = 'gateway.discord.gg';
 #| Host for REST requests
