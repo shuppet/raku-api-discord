@@ -117,3 +117,4 @@ method messages returns Supply {
 #| Gimme your REST client
 method rest { $!rest }
 
+method close { $!websocket.close }

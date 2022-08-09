@@ -3,7 +3,7 @@
 use API::Discord;
 
 sub MAIN($token) {
-    my $discord = API::Discord.new(:$token);
+    my $discord = API::Discord.new(:$token, :script-mode);
 
     $discord.connect;
     await $discord.ready;
