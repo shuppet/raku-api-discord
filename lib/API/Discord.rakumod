@@ -189,7 +189,11 @@ method new (*%args) {
     my $self = callwith |%args;
 
     if $script-mode {
-        signal(SIGINT).tap: { await $self.disconnect; exit; }
+        signal(SIGINT).tap: {
+            await $self.disconnect;
+            debug-say "Bye! 👋";
+            exit;
+        }
     }
 
     return $self;

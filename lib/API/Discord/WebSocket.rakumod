@@ -95,7 +95,12 @@ method connection-messages(--> Supply) {
 
         whenever $!conn.closer -> $close {
             my $blob = await $close.body-blob;
-            my $code = $blob.read-uint16(0, LittleEndian);
+            my $code = $blob.read-uint16(0, BigEndian);
+
+            if $code ~~ /^ 100 . $/ {
+                debug-say "Websocket closed, looks intentional ($code)" but WEBSOCKET;
+                return;
+            }
 
             debug-say("Websocket closed :( ($code)" but WEBSOCKET);
             emit API::Discord::WebSocket::Event::Disconnected.new:
