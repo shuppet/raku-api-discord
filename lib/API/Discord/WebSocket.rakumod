@@ -15,8 +15,8 @@ has $!token is built is required;
 #| A bitmask, all the way from the user
 has $!intents is built is required;
 
-#| The Cro WebSocket client used for the connection.
-has Cro::WebSocket::Client $!websocket .= new: :json;
+#| The connection from Cro::WebSocket::Client.connect
+has $!conn;
 
 #| Session ID, set so long as we have a valid/active session.
 has Str $!session-id;
@@ -33,14 +33,16 @@ has Int $!attempt-no = 0;
 #| (disconnect of some kind or heartbeat not acknowledged).
 method connection-messages(--> Supply) {
     $!attempt-no++;
-    my $conn = await $!websocket.connect($!ws-url);
+    my $websocket = Cro::WebSocket::Client.new: :json;
+
+    $!conn = await $websocket.connect($!ws-url);
     debug-say("WS connected" but WEBSOCKET);
     return supply {
         # Set to false when we send a heartbeat, and to true when the heartbeat is acknowledged. If
         # we don't get an acknowledgement then we know something is wrong.
         my Bool $heartbeat-acknowledged;
 
-        whenever $conn.messages -> $m {
+        whenever $!conn.messages -> $m {
             whenever $m.body -> $json {
                 if $json<s> {
                     $!sequence = $json<s>;
@@ -66,10 +68,10 @@ method connection-messages(--> Supply) {
                         $!sequence = Int;
                         # Docs say to wait a random amount of time between 1 and 5
                         # seconds, then re-auth
-                        Promise.in(4.rand + 1).then({ self!auth($conn) });
+                        Promise.in(4.rand + 1).then({ self!auth });
                     }
                     when OPCODE::hello {
-                        self!auth($conn);
+                        self!auth;
                         start-heartbeat($payload<heartbeat_interval> / 1000);
                     }
                     when OPCODE::reconnect {
@@ -91,9 +93,14 @@ method connection-messages(--> Supply) {
             }
         }
 
-        whenever $conn.closer -> $close {
+        whenever $!conn.closer -> $close {
             my $blob = await $close.body-blob;
-            my $code = $blob.read-uint16(0, LittleEndian);
+            my $code = $blob.read-uint16(0, BigEndian);
+
+            if $code ~~ /^ 100 . $/ {
+                debug-say "Websocket closed, looks intentional ($code)" but WEBSOCKET;
+                return;
+            }
 
             debug-say("Websocket closed :( ($code)" but WEBSOCKET);
             emit API::Discord::WebSocket::Event::Disconnected.new:
@@ -111,14 +118,14 @@ method connection-messages(--> Supply) {
                         emit API::Discord::WebSocket::Event::Disconnected.new:
                                 session-id => $!session-id,
                                 last-sequence-number => $!sequence;
-                        $conn.close;
+                        $!conn.close;
                         done;
                     }
                 }
 
                 # Send heartbeat and set that we're awaiting an acknowledgement.
                 debug-print("« ♥" but PONG);
-                $conn.send({
+                $!conn.send({
                     d => $!sequence,
                     op => OPCODE::heartbeat.Int,
                 });
@@ -129,11 +136,11 @@ method connection-messages(--> Supply) {
 }
 
 #| Resumes the session if there was one, or else sends the identify opcode.
-method !auth($websocket) {
+method !auth {
     debug-say("Auth..." but WEBSOCKET);
     if ($!session-id and $!sequence) {
         debug-say "Resuming session $!session-id at sequence $!sequence";
-        $websocket.send({
+        $!conn.send({
             op => OPCODE::resume.Int,
             d => {
                 token => $!token,
@@ -147,7 +154,7 @@ method !auth($websocket) {
     # TODO: There is a gateway bot bootstrap endpoint that tells you things like
     # how many shards to use. We should investigate this
     debug-say("New session..." but WEBSOCKET);
-    $websocket.send({
+    $!conn.send({
         op => OPCODE::identify.Int,
         d => {
             token => $!token,
@@ -161,3 +168,5 @@ method !auth($websocket) {
         }
     });
 }
+
+method close { $!conn.close }

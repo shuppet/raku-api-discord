@@ -29,7 +29,7 @@ of messages and other events to which your app can listen.
     use API::Discord;
     use API::Discord::Debug; # remove to disable debug output
 
-    my $d = API::Discord.new(:token(my-bot-token));
+    my $d = API::Discord.new(:token(my-bot-token), :script-mode);
 
     $d.connect;
     await $d.ready;
@@ -138,6 +138,11 @@ By default, the connection will assume you have only one shard.
 
 =head1 PROPERTIES
 
+=head2 script-mode
+
+This is a fake boolean property. If set, we handle SIGINT for you and disconnect
+properly.
+
 =end pod
 
 has Connection $!conn;
@@ -178,6 +183,22 @@ has %.guilds;
 # Kept when all guild IDs we expect to receive have been received. TODO: timeout
 has Promise $!guilds-ready = Promise.new;
 
+method new (*%args) {
+    my $script-mode = %args<script-mode>:delete;
+
+    my $self = callwith |%args;
+
+    if $script-mode {
+        signal(SIGINT).tap: {
+            await $self.disconnect;
+            debug-say "Bye! 👋";
+            exit;
+        }
+    }
+
+    return $self;
+}
+
 method !handle-message($message) {
     # TODO - send me an object please
     if $message<t> eq 'GUILD_CREATE' {
@@ -209,7 +230,8 @@ method !handle-message($message) {
     }
 }
 
-submethod DESTROY {
+#| Disconnects gracefully. Remember to await it!
+method disconnect {
     $!conn.close;
 }
 
